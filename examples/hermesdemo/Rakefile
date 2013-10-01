@@ -1,0 +1,50 @@
+#
+#  Rakefile  --  Netzseite bauen und installieren
+#
+
+require "autorake"
+
+
+rule ".html" => ".rb" do |r|
+  sh r.source, r.name
+end
+
+rule ".css" => ".rb" do |r|
+  sh r.source, r.name
+end
+
+html = %w(
+  htdocs/index.html
+)
+
+css = %w(
+  htdocs/hermesdemo.css
+)
+
+cgi = %w(
+  cgi-bin/index.rb
+)
+
+
+task :build => html
+task :build => css
+
+task :clean do
+  FileList[ "htdocs/*.html", "htdocs/*.css"].each { |n| rm_f n }
+end
+
+
+task :default => :build
+
+
+task :install => :build
+
+ug = { :user => parm[ :user], :group => parm[ :group] } if Process.uid == 0
+
+l = parm[ :location]
+installer l, "WWW", ug
+d = "WWW/#{l}"
+installer html, d, ug
+installer css,  d, ug
+installer cgi,  d, ug
+

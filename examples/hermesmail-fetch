@@ -1,0 +1,28 @@
+#
+#  hermesmail-fetch  --  Fetch methods for hermesmail
+#
+
+
+# Encrypt this file using GnuPG and save it as
+# "~/.hermesmail-fetch" or whatever you specify by the
+# -F option.
+
+
+if ENV[ "HERMES"] == "keep" then
+  keep
+end
+
+pop "myprovider.com" do
+  login "j.doe+myprovider.com", "verysecret"
+  login "john.doe+myprovider.com", "verysecret"
+end
+
+keep {
+
+  pop "yetanother.com" do
+    login "johndoe@yetanother.com", "verysecret"
+  end
+
+}
+
+# vim:set ft=ruby :

@@ -1,0 +1,32 @@
+#
+#  Includes/myhost_hermesdemo.include  --  Hermes-Demo
+#
+
+# Example Apache 2.4 configuration
+
+ScriptAlias /hermesdemo/cgi-bin  "/usr/local/www/myhost/hermesdemo/cgi-bin/"
+Alias       /hermesdemo          "/usr/local/www/myhost/hermesdemo/htdocs/"
+
+<Directory "/usr/local/www/myhost/hermesdemo/htdocs">
+
+    # This redirection doesn't work; the environment variable CONTEXT_PREFIX
+    # (something like cwd) will miss the "/cgi-bin" at the end and then all
+    # links to CSSes and neigbour pages will be wrong.
+    #
+    # DirectoryIndex cgi-bin/index.rb
+
+    # Options Indexes FollowSymLinks
+    AllowOverride All
+    Require all granted
+</Directory>
+
+<Directory "/usr/local/www/myhost/hermesdemo/cgi-bin">
+    Options +ExecCGI -Indexes -FollowSymLinks
+    AllowOverride All
+    Require all granted
+
+    SSLOptions +StdEnvVars
+</Directory>
+
+
+# vim: ts=4 filetype=apache

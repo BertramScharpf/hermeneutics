@@ -1,0 +1,307 @@
+#!/usr/bin/env ruby
+
+#
+#  hermesmail  --  Mail filtering and delivery
+#
+
+begin
+  require "appl"
+rescue LoadError
+  raise "This requires the Gem 'appl'."
+end
+
+require "hermes/version"
+require "hermes/transports"
+
+
+module Hermes
+
+  class Processed < Mail
+
+    class Done < Exception ; end
+
+    # Do nothing, just finish.
+    def done
+      raise Done
+    end
+
+    alias delete done
+
+    # Save in a local mailbox
+    def deposit mailbox = nil
+      save mailbox
+      done
+    end
+
+    # Forward by SMTP
+    def forward_smtp to
+      send nil, to
+      done
+    end
+
+    # Forward by sendmail
+    def forward_sendmail to
+      sendmail to
+      done
+    end
+    alias forward forward_smtp
+
+
+    self.logfile  = "hermesmail.log"
+    self.loglevel = :ERR
+
+    @failed_process = "=failed-process"
+
+    class <<self
+      attr_accessor :failed_process
+      def process input
+        i = parse input
+        i.execute
+      rescue
+        open_failed { |f|
+          log :ERR, "Error while parsing mail: #$! (#{$!.class})", f.path
+          f.write input
+        }
+      end
+      private
+      def open_failed
+        i = 0
+        d = expand_sysdir
+        w = Time.now.strftime "%Y%m%d%H%M%S"
+        begin
+          p = File.join d, "failed-#{w}-%05d" % i
+          File.open p, File::CREAT|File::EXCL|File::WRONLY do |f|
+            yield f
+          end
+        rescue Errno::ENOENT
+          Dir.mkdir! d and retry
+        rescue Errno::EEXIST
+          i +=1
+          retry
+        end
+      end
+    end
+
+    def execute
+      process
+      save
+    rescue Done
+    rescue
+      log :ERR, "Error while processing mail: #$! (#{$!.class})"
+      b = cls.box cls.failed_process
+      save b
+    end
+
+  end
+
+
+  class Keep < Exception ; end
+
+  class Fetch
+    def initialize
+      @access = nil
+      @list = []
+    end
+    def keep arg = true
+      if block_given? then
+        k, @keep = @keep, arg
+        yield
+      else
+        k = arg
+      end
+    ensure
+      @keep = k
+    end
+    private
+    def access a
+      @access and raise "Access methods may not be nested."
+      @access = a
+      yield
+    ensure
+      @access = nil
+    end
+    public
+    def pop host, port = nil
+      access type: :pop, host: host, port: port do
+        yield
+      end
+    end
+    def pops host, port = nil
+      access type: :pops, host: host, port: port do
+        yield
+      end
+    end
+    def login user, password
+      h = { user: user, password: password, keep: @keep }
+      h.merge! @access
+      @list.push h
+      nil
+    end
+    def each
+      @list.each { |h|
+        t = case h[ :type]
+          when :pop  then Pop.new h[ :host], h[ :port]
+          when :pops then Pop.new h[ :host], h[ :port], true
+        end
+        t.keep! if h[ :keep]
+        t.login h[ :user], h[ :password] do
+          yield t
+        end
+      }
+    end
+    class Pop
+      def initialize host, port = nil, ssl = nil
+        if host =~ /:(\d+)\z/ then
+          host, port, ssl = $`, $1.to_i, port||ssl
+        end
+        @host, @port, @ssl = host, port, ssl
+        require "net/pop"
+      end
+      def keep! ; @keep = true ; end
+      def login user, password
+        if @ssl then
+          Net::POP3.enable_ssl
+        else
+          Net::POP3.disable_ssl
+          apop = true
+        end
+        begin
+          @pop = Net::POP3.new @host, @port, apop
+          @pop.start user, password do |pop|
+            @user = user
+            yield
+          end
+        rescue Net::POPAuthenticationError
+          raise unless apop
+          apop = false
+          retry
+        end
+      ensure
+        @user = nil
+      end
+      def name
+        @user or raise "Not logged in."
+        r = "#@user@#@host"
+        r << ":#@port" if @port
+        r
+      end
+      def count ; @pop.n_mails ; end
+      def each
+        @pop.mails.each do |m|
+          begin
+            yield m.pop
+            m.delete unless @keep
+          rescue Keep
+          end
+        end
+      end
+    end
+  end
+
+
+  class MailApp < Application
+
+    NAME      = "hermesmail"
+    VERSION   = Hermes::VERSION
+    SUMMARY   = "A mail delivery agent written in Ruby"
+    COPYRIGHT = Hermes::COPYRIGHT
+    LICENSE   = Hermes::LICENSE
+    AUTHORS   = Hermes::AUTHORS
+
+    DESCRIPTION = <<-EOT
+This mail delivery agent (MDA) reads a configuration file
+that is plain Ruby code. See the examples section for how
+to write one.
+    EOT
+
+    attr_accessor :rulesfile, :mbox, :fetchfile
+    attr_bang :debug, :fetch, :keep
+    def quiet! ; @quiet += 1 ; end
+
+    def initialize *args
+      @quiet = 0
+      super
+    end
+
+    RULESFILE = "~/.hermesmail-rules"
+    FETCHFILE = "~/.hermesmail-fetch"
+
+    define_option "r", :rulesfile=, "NAME", RULESFILE, "filtering rules"
+    alias_option  "r", "rulesfile"
+
+    define_option "M", :mbox=, "MBOX",
+                         "process all in MBOX instead of one from stdin"
+    alias_option  "M", "mbox"
+
+    define_option "f", :fetch!,                "fetch from a POP server"
+    alias_option  "f", "fetch"
+
+    define_option "F", :fetchfile=, "FILE", FETCHFILE,
+                         "a PGP-encrypted file containing fetch methods"
+    alias_option  "F", "fetchfile"
+    alias_option  "F", "fetch-file"
+
+    define_option "k", :keep!,    "don't delete the mails on the server"
+    alias_option  "k", "keep"
+
+    define_option "q", :quiet!,
+                     "less output (once = no progress, twice = nothing)"
+    alias_option  "q", "quiet"
+
+    define_option "g", :debug!,               "full Ruby error messages"
+    alias_option  "g", "debug"
+
+    define_option "h", :help,                             "show options"
+    alias_option  "h", "help"
+    define_option "V", :version,                          "show version"
+    alias_option  "V", "version"
+
+    def run
+      Processed.class_eval read_rules
+      if @mbox and @fetch then
+        raise "Specify either mbox or fetch but not both."
+      end
+      if @mbox then
+        b = Box.find @mbox
+        b.each { |m| Processed.process m }
+      elsif @fetch then
+        f = read_fetches
+        f.each { |s|
+          c = s.count
+          puts "#{c} Mails in #{s.name}." if @quiet < 2
+          i = 0
+          s.each { |m|
+            print "\r#{i}/#{c}  " if @quiet < 1
+            i += 1
+            Processed.process m
+            raise Keep if @keep
+          }
+          puts "\rDone.     " if @quiet < 1
+        }
+      else
+        msg = $<.read
+        msg.force_encoding Encoding::ASCII_8BIT
+        Processed.process msg
+      end
+    end
+
+    private
+
+    def read_rules
+      r = File.expand_path @rulesfile
+      File.read r
+    end
+
+    def read_fetches
+      p = File.expand_path @fetchfile
+      f = Fetch.new
+      f.instance_eval `gpg -d #{p}`
+      f
+    end
+
+  end
+
+  MailApp.run
+
+end
+

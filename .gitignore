@@ -1,0 +1,10 @@
+#
+#  .gitignore  --  Files not to be checked in
+#
+
+testmail*
+devel/
+doc/
+
+.intar_history*
+

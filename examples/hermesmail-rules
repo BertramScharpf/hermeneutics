@@ -1,0 +1,28 @@
+#
+#  hermesmail-rules-test  --  Example Hermes rulefile
+#
+
+self.spooldir  = "/var/mail"
+self.spoolfile = "#{etc.getlogin}__"
+self.maildir   = "Mail__"
+self.default_format = MBox
+
+self.logfile  = ".log/logfile"
+self.loglevel = :INF
+
+B_SPAM_WEBDE = box "=spam-webde"
+
+B_TEST_MAIN      = box "=test/main"
+B_TEST_SECONDARY = box "=test/secondary"
+
+def process
+  if from =~ /\A(neu|keineantwortadresse)@web\.de/ then
+    deposit B_SPAM_WEBDE
+  end
+  case headers.list_id
+    when "test@hermes.local"    then deposit B_TEST_MAIN
+    when "another@hermes.local" then deposit B_TEST_SECONDARY
+  end
+end
+
+# vim:set ft=ruby :
