@@ -113,11 +113,6 @@ module Hermes
 
     def document out = nil
       @out = out||$stdout
-      if @out.respond_to? :path then
-        name = File.basename @out.path
-        comment "#{name}  --  generated #{Time.now}#$/"
-        space
-      end
       build
     ensure
       @out = nil
