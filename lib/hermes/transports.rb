@@ -23,11 +23,19 @@ module Hermes
     a = nil
 
     class <<self
+
       attr_accessor :spooldir, :spoolfile, :maildir, :sysdir, :default_format
       attr_accessor :sendmail
       attr_accessor :logfile, :loglevel
 
       def box path = nil, default_format = nil
+        @cache ||= {}
+        @cache[ path] ||= find_box path, default_format
+      end
+
+      private
+
+      def find_box path, default_format
         b = case path
           when Box then
             path
@@ -47,6 +55,8 @@ module Hermes
         b.exists? or b.create
         b
       end
+
+      public
 
       def sendmail
         @sendmail||SENDMAIL

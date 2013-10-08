@@ -59,9 +59,13 @@ module Hermes
         i.execute
       rescue
         open_failed { |f|
-          log :ERR, "Error while parsing mail: #$! (#{$!.class})", f.path
+          log_exception "Error while parsing mail", f.path
           f.write input
         }
+      end
+      def log_exception msg, *args
+        log :ERR, "#{msg}: #$! (#{$!.class})", *args
+        $!.backtrace.each { |b| log :INF, "    #{b}" }
       end
       private
       def open_failed
@@ -87,9 +91,13 @@ module Hermes
       save
     rescue Done
     rescue
-      log :ERR, "Error while processing mail: #$! (#{$!.class})"
+      log_exception "Error while processing mail"
       b = cls.box cls.failed_process
       save b
+    end
+
+    def log_exception msg, *args
+      cls.log_exception msg, *args
     end
 
   end
