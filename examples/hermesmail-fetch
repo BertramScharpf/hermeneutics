@@ -8,21 +8,20 @@
 # -F option.
 
 
-if ENV[ "HERMES"] == "keep" then
-  keep
-end
-
 pop "myprovider.com" do
   login "j.doe+myprovider.com", "verysecret"
   login "john.doe+myprovider.com", "verysecret"
 end
 
-keep {
+pops "yetanother.com", "/path/to/certs" do
+  login "johndoe@yetanother.com", "verysecret"
+end
 
-  pop "yetanother.com" do
-    login "johndoe@yetanother.com", "verysecret"
-  end
-
-}
+# Encryption command:
+#
+#   gpg -a -r jdoe@myprovider.com -e
+#
+# Call Vim with "-i NONE" to prevent passwords from being stored
+# in the .viminfo file.
 
 # vim:set ft=ruby :

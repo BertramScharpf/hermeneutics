@@ -38,6 +38,7 @@ Gem::Specification.new do |s|
                           lib/hermes/boxes.rb
                           lib/hermes/mail.rb
                           lib/hermes/transports.rb
+                          lib/hermes/cli/pop.rb
                         )
   s.executables       = %w(
                           hermesmail
