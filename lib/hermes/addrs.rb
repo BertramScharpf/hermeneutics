@@ -632,7 +632,7 @@ module Hermes
         case m
           when Regexp then
             @list.find { |a|
-              if a =~ m then
+              if a.plain =~ m then
                 yield *$~.captures if block_given?
                 true
               end
