@@ -812,6 +812,8 @@ module Hermes
                 (s.unpack "S>*").map { |x| x.chr ENCODING }.join
               end
             end
+          when /\Aunknown/i then
+            txt.force_encoding Encoding::US_ASCII
           else
             txt.force_encoding cs
         end

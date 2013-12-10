@@ -573,7 +573,6 @@ module Hermes
 
     def to_s
       r = ""
-      b = @body.to_s
       if is_multipart? then
         c = @headers.field :content_type
         u = @body.boundary
@@ -581,7 +580,7 @@ module Hermes
           @headers.replace :content_type, c.fulltype, :boundary => u
         end
       end
-      r << @headers.to_s << $/ << b
+      r << @headers.to_s << $/ << @body.to_s
       r
     end
 

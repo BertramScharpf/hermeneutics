@@ -84,7 +84,7 @@ module Hermes
           v = hash[ k]
           Array === v and v = v.join
           if asts[ k] then
-            enc, lang, val = v.join.split "'"
+            enc, lang, val = v.split "'"
             val.force_encoding enc
             v = URLText.decode val
           end
