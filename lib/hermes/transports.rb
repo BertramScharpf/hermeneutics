@@ -5,6 +5,8 @@
 require "hermes/mail"
 require "hermes/boxes"
 
+require "supplement/locked"
+
 
 module Hermes
 
@@ -66,10 +68,8 @@ module Hermes
         @logfile or return
         return if LEVEL[ type] > LEVEL[ @loglevel].to_i
         l = File.expand_path @logfile, expand_sysdir
-        File.open l, "a" do |log|
-          log.flockb true do
-            log.puts "[#{Time.new}] [#$$] [#{type}] #{message.join ' '}"
-          end
+        LockedFile.open l, "a" do |log|
+          log.puts "[#{Time.new}] [#$$] [#{type}] #{message.join ' '}"
         end
         nil
       rescue Errno::ENOENT

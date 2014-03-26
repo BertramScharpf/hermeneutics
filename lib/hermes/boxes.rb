@@ -18,6 +18,7 @@ Hermes::Maildir is the maildir format.
 
 
 require "supplement"
+require "supplement/locked"
 require "date"
 
 
@@ -170,20 +171,17 @@ module Hermes
     #
     def deliver msg
       pos = nil
-      File.open @mailbox, :encoding => Encoding::ASCII_8BIT do |f|
-        f.flockb true do
-          f.seek [ f.size - 4, 0].max
-          last = ""
-          f.read.each_line { |l| last = l }
-          f.reopen f.path, "a"
-          f.puts unless last =~ /^$/
-          pos = f.size
-          m = msg.to_s
-          i = 1
-          while (i = m.index RE_F, i rescue nil) do m.insert i, ">" end
-          f.write m
-          f.puts
-        end
+      LockedFile.open @mailbox, "r+", :encoding => Encoding::ASCII_8BIT do |f|
+        f.seek [ f.size - 4, 0].max
+        last = ""
+        f.read.each_line { |l| last = l }
+        f.puts unless last =~ /^$/
+        pos = f.size
+        m = msg.to_s
+        i = 1
+        while (i = m.index RE_F, i rescue nil) do m.insert i, ">" end
+        f.write m
+        f.puts
       end
       pos
     end

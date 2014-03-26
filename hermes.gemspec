@@ -8,7 +8,6 @@ require "./lib/hermes/version.rb"
 
 Gem::Specification.new do |s|
   s.name              = Hermes::NAME
-  s.rubyforge_project = "NONE"
   s.version           = Hermes::VERSION
   s.summary           = Hermes::SUMMARY
   s.description       = Hermes::DESCRIPTION
@@ -18,7 +17,7 @@ Gem::Specification.new do |s|
   s.homepage          = Hermes::HOMEPAGE
 
   s.requirements      = "Just Ruby"
-  s.add_dependency      "supplement", ">=1.6"
+  s.add_dependency      "supplement", ">=2.0"
 
   s.require_paths     = %w(lib)
   s.extensions        = %w()
