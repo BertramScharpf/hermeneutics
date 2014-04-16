@@ -596,7 +596,7 @@ module Hermes
         when "base64" then
           (@body.unpack "m").join
         else
-          @body.to_s
+          @body.new_string
       end
       if (c = @headers.content_type) and (s = c[ :charset]) then
         r.force_encoding s
