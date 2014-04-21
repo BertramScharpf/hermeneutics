@@ -174,7 +174,10 @@ module Hermes
         l.each { |s|
           s.chomp! unless s.frozen?
           k, v = s.split %r/=/
-          p.parse k, v||true if k
+          if k then
+            k.strip!
+            p.parse k, v||true if k.notempty?
+          end
         }
       end
     end
@@ -189,8 +192,11 @@ Offline mode: Enter name=value pairs on standard input.
           EOT
         end
         l = []
-        $stdin.readlines.each { |a| l.push a }
+        while (a = $stdin.gets) and a !~ /^$/ do
+          l.push a
+        end
       end
+      ENV[ "SCRIPT_NAME"] = $0
       mk_params l
     end
 
