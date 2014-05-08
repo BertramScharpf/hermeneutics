@@ -583,18 +583,19 @@ module Hermes
 
     def initialize *addrs
       @list = []
-      add_addrs addrs
-    end
-
-    def add_addrs addrs
-      case addrs
-        when String then add_encoded addrs
-        when Addr   then @list.push addrs
-        else             addrs.each { |a| add_addrs a }
-      end
+      push addrs
     end
 
     public
+
+    def push addrs
+      case addrs
+        when nil    then
+        when String then add_encoded addrs
+        when Addr   then @list.push addrs
+        else             addrs.each { |a| push a }
+      end
+    end
 
     def inspect
       "<#{self.class}: " + (@list.map { |a| a.inspect }.join ", ") + ">"
