@@ -126,7 +126,7 @@ module Hermes
     def initialize num
       super num.to_i.to_s
     end
-    def to_s
+    def to_s *args
       to_i.to_s
     end
     alias quote to_s
