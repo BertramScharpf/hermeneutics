@@ -14,7 +14,7 @@
 module Hermes
 
   NAME        = "hermes"
-  VERSION     = "1.2".freeze
+  VERSION     = "1.2.1".freeze
   SUMMARY     = "CGI and mail handling"
 
   DESCRIPTION = <<-EOT
