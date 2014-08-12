@@ -7,7 +7,7 @@ require "hermes/contents"
 require "hermes/addrs"
 
 
-class Nil
+class NilClass
   def eat_lines
   end
   def rewind
