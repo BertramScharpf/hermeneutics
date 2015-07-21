@@ -44,16 +44,14 @@ module Hermes
   class Css
 
     class <<self
+
       attr_accessor :main
       def inherited cls
         Css.main = cls
       end
-      def document out = nil
-        open_out out do |o|
-          @main.new.document o
-        end
-      end
+
       private
+
       def open_out out
         if out or $*.empty? then
           yield out
@@ -61,6 +59,31 @@ module Hermes
           File.open $*.shift, "w" do |f| yield f end
         end
       end
+
+      public
+
+      def document out = nil
+        open_out out do |o|
+          @main.new.document o
+        end
+      end
+
+      def single hash
+        if block_given? then
+          hash.map { |k,v|
+            if Symbol === k then k = k.new_string ; k.gsub! /_/, "-" end
+            if Array  === v then v = v.join " "                      end
+            yield "#{k}: #{v};"
+          }
+        else
+          r = []
+          single hash do |s|
+            r.push s
+          end
+          r
+        end
+      end
+
     end
 
     class Selector
@@ -214,11 +237,9 @@ module Hermes
       else
         [ " ", " "]
       end
-      p.each { |k,v|
-        if Symbol === k then k = k.new_string ; k.gsub! /_/, "-" end
-        if Array  === v then v = v.join " "                      end
-        @out << ind << k << ": " << v << ";" << nl
-      }
+      self.class.single p do |s|
+        @out << ind << s << nl
+      end
       @out << "}" << $/
     end
 
