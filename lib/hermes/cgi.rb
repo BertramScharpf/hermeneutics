@@ -237,20 +237,15 @@ Offline mode: Enter name=value pairs on standard input.
     end
 
     def document cls = Html, *args
-      doc = cls.new self, *args
-      ct = if doc.respond_to? :content_type then
-        doc.content_type
-      elsif cls.const_defined? :CONTENT_TYPE then
-        doc.class::CONTENT_TYPE
-      end
       done { |res|
+        doc = cls.new self, *args
         res.body = ""
-        f = res.body.encoding
         doc.document res.body
-        if ct then
-          e = res.body.encoding.nil_if f
-          res.headers.add :content_type, ct, charset: e
+        ct = if doc.respond_to?    :content_type then doc.content_type
+        elsif   cls.const_defined? :CONTENT_TYPE then doc.class::CONTENT_TYPE
         end
+        ct and res.headers.add :content_type, ct,
+                                  charset: res.body.encoding||__ENCODING__
         if doc.respond_to? :cookies then
           doc.cookies do |c|
             res.headers.add :set_cookie, c

@@ -17,7 +17,7 @@ module Hermes
   #     html {
   #       head {
   #         title { "Example" }
-  #         comment "created as an example, #{Time.now}\n"
+  #         comment "created as an example, #{Time.now}"
   #       }
   #       body( :bgcolor => Color.from_s( "ffffef")) {
   #         h1 {
