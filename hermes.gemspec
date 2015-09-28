@@ -17,7 +17,7 @@ Gem::Specification.new do |s|
   s.homepage          = Hermes::HOMEPAGE
 
   s.requirements      = "Just Ruby"
-  s.add_dependency      "supplement", ">=2.0"
+  s.add_dependency      "supplement", "~>2"
 
   s.require_paths     = %w(lib)
   s.extensions        = %w()
