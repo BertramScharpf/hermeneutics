@@ -172,6 +172,7 @@ to write one.
     def initialize *args
       @quiet = 0
       super
+      $*.replace @args
     end
 
     RULESFILE = "~/.hermesmail-rules"
