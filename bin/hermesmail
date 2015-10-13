@@ -18,6 +18,7 @@ require "hermes/cli/pop"
 module Hermes
 
   class Processed < Mail
+    attr_accessor :debug
 
     class Done < Exception ; end
 
@@ -55,10 +56,12 @@ module Hermes
 
     class <<self
       attr_accessor :failed_process
-      def process input
+      def process input, debug=false
         i = parse input
+        i.debug = debug
         i.execute
       rescue
+        raise if debug
         open_failed { |f|
           log_exception "Error while parsing mail", f.path
           f.write input
@@ -92,6 +95,7 @@ module Hermes
       save
     rescue Done
     rescue
+      raise if @debug
       log_exception "Error while processing mail"
       b = cls.box cls.failed_process
       save b
@@ -232,7 +236,7 @@ to write one.
       else
         msg = $<.read
         msg.force_encoding Encoding::ASCII_8BIT
-        Processed.process msg
+        Processed.process msg, @debug
       end
     end
 
