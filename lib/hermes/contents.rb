@@ -64,8 +64,9 @@ module Hermes
             ord = $2.to_i if $2
             [ $`, $']
           else
-            [ rest, ""]
+            [ rest.dup, ""]
           end
+          key.downcase!
           key = key.to_sym
           asts[ key] = ast
           val, rest = if not ast and rest =~ /\A"(.*?)"(?:#{SEP}\s*|\z)/ then
