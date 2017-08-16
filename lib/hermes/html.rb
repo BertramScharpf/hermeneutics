@@ -63,7 +63,7 @@ module Hermes
     end
 
     def build
-      html { body { p { "It works." } } }
+      html { body { h1 { "It works." } } }
     end
 
     def document out = nil

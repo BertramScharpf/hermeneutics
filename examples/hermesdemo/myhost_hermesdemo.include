@@ -11,7 +11,7 @@ Alias       /hermesdemo          "/usr/local/www/myhost/hermesdemo/htdocs/"
 
     # This redirection doesn't work; the environment variable CONTEXT_PREFIX
     # (something like cwd) will miss the "/cgi-bin" at the end and then all
-    # links to CSSes and neigbour pages will be wrong.
+    # links to CSSes and neighbour pages will be wrong.
     #
     # DirectoryIndex cgi-bin/index.rb
 
