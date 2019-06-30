@@ -51,15 +51,25 @@ module Hermes
       end
       private
       def open_out out
-        if out or $*.empty? then
+        if out then
           yield out
         else
-          File.open $*.shift, "w" do |f| yield f end
+          p = $*.shift
+          if not p or p == "-" then
+            yield $stdout
+          else
+            File.open p, "w" do |f| yield f end
+          end
         end
       end
     end
 
     def language
+      if ENV[ "LANG"] =~ /\A\w{2,}/ then
+        r = $&
+        r.gsub! /_/, "-"
+        r
+      end
     end
 
     def build
@@ -70,88 +80,30 @@ module Hermes
       if String === out and out.ascii_only? then
         out.force_encoding Encoding.default_external
       end
+      generate out do
+        doctype_header
+        build
+      end
+    end
+
+    private
+
+    def generate out
       @generator = Generator.new out
-      doctype_header
-      build
+      yield
     ensure
       @generator = nil
     end
 
-    DOCTYPE = "transitional"
-
-    private
-
     def doctype_header
-      doctype_header_data do |type,dtd,dir,variant,file|
-        file or raise ArgumentError, "No header data for #{self.class}"
-        name = ["DTD", dtd, variant].compact.join " "
-        path = ["-", "W3C", name, "EN"].join "//"
-        link = "http://www.w3.org/TR/#{dir}/#{file}.dtd"
-        @generator.doctype type, path, link
-      end
+      @generator.doctype "html"
     end
 
-    def doctype_header_data
-      vf = case DOCTYPE
-        when "strict"       then [ nil,            "strict"  ]
-        when "transitional" then [ "Transitional", "loose"   ]
-        when "frameset"     then [ "Frameset",     "frameset"]
-      end
-      yield "HTML", "HTML 4.01", "html4", *vf
-    end
-
-  end
-
-  class XHtml < Html
-
-    def document out = nil
-      super do
-        @generator.close_standalone = true
-        @generator.assign_attributes = true
-        yield
-      end
-    end
-
-    def html attrs = nil
-      attrs ||= {}
-      attrs[ :xmlns] ||= "http://www.w3.org/1999/xhtml"
-      super
-    end
-
-    def a attrs = nil
-      attrs[ :name] ||= attrs[ :id] if attrs
-      super
-    end
-
-    def quote_script str
-      @generator.commented_cdata str
-    end
-
-    private
-
-    def doctype_header
-      prop = { version: "1.0", encoding: @generator.encoding }
-      @generator.pi_tag :xml, prop
-      super
-    end
-
-    def doctype_header_data
-      vf = case DOCTYPE
-        when "strict"       then [ "Strict",       "xhtml1-strict"      ]
-        when "transitional" then [ "Transitional", "xhtml1-transitional"]
-        when "frameset"     then [ "Frameset",     "xhtml1-frameset"    ]
-      end
-      yield "html", "XHTML 1.0", "xhtml1/DTD", *vf
-    end
-
-  end
-
-  class Html
 
     class Generator
-      attr_accessor :close_standalone, :assign_attributes
+      attr_accessor :close_standalone, :assign_attributes, :cdata_block
       def initialize out
-        @out = out||$stdout
+        @out = out
         @ent = Entities.new
         @nl, @ind = true, [ ""]
       end
@@ -174,35 +126,37 @@ module Hermes
       # 1 = newline after
       # 2 = newline after both
       # 3 = and advance indent
-      def tag nls, tag, attrs = nil
-        if String === attrs then
-          tag nls, tag, nil do attrs end
-          return
-        end
-        if Symbol === tag then tag = tag.new_string ; tag.gsub! /_/, "-" end
-        if block_given? then
+      # 4 = Block without any indent
+      def tag tag, type, attrs = nil
+        nls = type & 0xf
+        if (type & 0x10).nonzero? then
+          brace nls>0 do
+            @out << tag
+            mkattrs attrs
+            @out << " /" if @close_standalone
+          end
+        else
           begin
             brk if nls>1
             brace nls>1 do
               @out << tag
               mkattrs attrs
             end
-            indent_if nls>2 do
-              r = yield
-              plain r if String === r
+            if nls >3 then
+              verbose_block yield
+            else
+              indent_if nls>2 do
+                if block_given? then
+                  r = yield
+                  plain r if String === r
+                end
+              end
             end
           ensure
             brk if nls>1
             brace nls>0 do
               @out << "/" << tag
             end
-          end
-        else
-          brk if nls>1
-          brace nls>0 do
-            @out << tag
-            mkattrs attrs
-            @out << " /" if @close_standalone
           end
         end
         nil
@@ -218,32 +172,46 @@ module Hermes
           end
         end
       end
-      def doctype type, path, link
+      def doctype *args
         brace true do
           @out << "!DOCTYPE"
-          %W(#{type} PUBLIC "#{path}" "#{link}").each { |x| @out << " " << x }
+          args.each { |x|
+            @out << " "
+            if x =~ /\W/ then
+              @out << '"' << (@ent.encode x) << '"'
+            else
+              @out << x
+            end
+          }
         end
       end
       def comment str
-        brace true do
-          nl = str =~ %r(#$/\z)
-          @out << "!--"
-          brk if nl
-          @out << str
-          do_ind if nl
-          @out << "--"
+        if str =~ /\A.*\z/ then
+          brace_comment do
+            @out << " " << str << " "
+          end
+        else
+          brace_comment do
+            brk
+            out_brk str
+            do_ind
+          end
         end
       end
-      def commented_cdata str
-        @out << $/ << "/* "
-        brace false do
-          @out << "![CDATA["
-          @out << " */" << $/
-          @out << str
-          @out << $/ << "/* "
-          @out << "]]"
+      def verbose_block str
+        if @cdata_block then
+          @out << "/* "
+          brace false do
+            @out << "![CDATA["
+            @out << " */" << $/
+            @out << str
+            @out << $/ << "/* "
+            @out << "]]"
+          end
+          @out << " */"
+        else
+          out_brk str
         end
-        @out << " */" << $/
       end
       private
       def brk
@@ -251,6 +219,11 @@ module Hermes
           @nl = true
           @out << $/
         end
+      end
+      def out_brk str
+        @out << str
+        @nl = str !~ /.\z/
+        brk
       end
       def do_ind
         if @nl then
@@ -267,15 +240,23 @@ module Hermes
         @out << ">"
         brk if nl
       end
-      def indent_if flag, &block
+      def brace_comment
+        brace true do
+          @out << "!--"
+          yield
+          @out << "--"
+        end
+      end
+      def indent_if flag
         if flag then
-          indent &block
+          indent do yield end
         else
           yield
         end
       end
+      INDENT = 2
       def indent
-        @ind.push @ind.last + "  "
+        @ind.push @ind.last + " "*INDENT
         yield
       ensure
         @ind.pop
@@ -284,16 +265,19 @@ module Hermes
         attrs or return
         attrs.each { |k,v|
           if Symbol === k then k = k.new_string ; k.gsub! /_/, "-" end
-          v or next
-          @out << " " << k
-          case v
+          v = case v
             when true then
               next unless @assign_attributes
-              v = k
+              k.to_s
             when Array then
-              v = v.compact.join " "
+              v.compact.join " "
+            when nil then
+              next
+            else
+              v.to_s
           end
-          @out << "=\"" << (@ent.encode v) << "\""
+          v.notempty? or next
+          @out << " " << k << "=\"" << (@ent.encode v) << "\""
         }
       end
     end
@@ -303,34 +287,47 @@ module Hermes
     NBSP = Entities::NAMES[ "nbsp"]
 
     TAGS = {
-      a: 0, abbr: 0, acronym: 0, address: 1, applet: 0, area: 1, b: 0, base:
-      1, basefont: 1, bdo: 0, big: 0, blockquote: 3, body: 2, br: 1, button:
-      3, caption: 1, center: 3, cite: 0, code: 0, col: 1, colgroup: 3, dd: 1,
-      del: 0, dfn: 0, dir: 3, div: 3, dl: 3, dt: 1, em: 0, fieldset: 3, font:
-      0, form: 3, frame: 1, frameset: 3, h1: 1, h2: 1, h3: 1, h4: 1, h5: 1,
-      h6: 1, head: 3, hr: 1, html: 2, i: 0, iframe: 3, img: 0, input: 0, ins:
-      0, isindex: 1, kbd: 0, label: 0, legend: 1, li: 1, link: 1, map: 3,
-      menu: 3, meta: 1, noframes: 3, noscript: 3, object: 3, ol: 3, optgroup:
-      3, option: 1, p: 3, param: 1, pre: 1, q: 0, s: 0, samp: 0, script: 3,
-      select: 3, small: 0, span: 0, strike: 0, strong: 0, style: 2, sub: 0,
-      sup: 0, table: 3, tbody: 3, td: 1, textarea: 1, tfoot: 3, th: 1, thead:
-      3, title: 1, tr: 3, tt: 0, u: 0, ul: 3, var: 0,
+      a:0, abbr:0, address:1, article:3, aside:3, audio:3, b:0, bdi:0, bdo:2,
+      blockquote:3, body:2, button:3, canvas:1, caption:1, cite:0, code:0,
+      colgroup:3, data:0, datalist:3, dd:1, del:0, details:3, dfn:0, dialog:0,
+      div:3, dl:3, dt:1, em:0, fieldset:3, figcaption:1, figure:3, footer:3,
+      form:3, h1:1, h2:1, h3:1, h4:1, h5:1, h6:1, head:3, header:3, html:2,
+      i:0, iframe:3, ins:0, kbd:0, label:0, legend:1, li:1, main:3, map:3,
+      mark:0, meter:0, nav:3, noscript:3, object:3, ol:3, optgroup:3,
+      option:1, output:0, p:2, picture:3, pre:1, progress:0, q:0, rp:0, rt:0,
+      ruby:2, s:0, samp:0, section:3, select:3, small:0, span:0, strong:0,
+      sub:0, summary:1, sup:0, svg:3, table:3, tbody:3, td:1, template:3,
+      textarea:1, tfoot:3, th:1, thead:3, time:0, title:1, tr:3, u:0, ul:3,
+      var:0, video:3,
+
+      # tags containing foreign code blocks
+      script:4, style:4,
+
+      # void tags
+      area:0x11, base:0x11, br:0x11, col:0x11, embed:0x11, hr:0x11, img:0x10,
+      input:0x10, keygen:0x11, link:0x11, meta:0x11, param:0x11, source:0x11,
+      track:0x11, wbr:0x10,
     }
 
     # remove Kernel methods of the same name: :p, :select, :sub
-    m = TAGS.keys & (private_instance_methods +
-                              protected_instance_methods + instance_methods)
-    undef_method *m
+    (TAGS.keys & (private_instance_methods +
+                  protected_instance_methods +
+                  instance_methods)).each { |m| undef_method m }
 
     def method_missing name, *args, &block
       t = TAGS[ name]
       t or super
-      @generator.tag t, name, *args, &block
+      if String === args.last then
+        b = args.pop
+        @generator.tag name, t, *args do b end
+      else
+        @generator.tag name, t, *args, &block
+      end
     end
 
     def pcdata *strs
       strs.each { |s|
-        next unless s
+        s or next
         @generator.plain s
       }
       nil
@@ -350,26 +347,20 @@ module Hermes
       @generator.comment str
     end
 
-    def quote_script str
-      comment str+$/+"// "
-    end
-
-    def javascript str
+    def javascript str = nil, &block
       mime = { type: "text/javascript" }
-      script mime do quote_script str end
+      script mime, str, &block
     end
 
-    def css str
-      mime = { type: "text/css" }
-      script mime do quote_script str end
+    def html attrs = nil
+      attrs ||= {}
+      attrs[ :"lang"] ||= language
+      method_missing :html, attrs do yield end
     end
 
     def head attrs = nil
       method_missing :head, attrs do
-        c = ContentType.new "text/html", charset: @generator.encoding
-        meta http_equiv: "Content-Type",     content: c
-        l = language
-        meta http_equiv: "Content-Language", content: l if l
+        meta charset: @generator.encoding
         yield
       end
     end
@@ -427,6 +418,41 @@ module Hermes
       else
         method_missing :input, arg, &block
       end
+    end
+
+  end
+
+  class XHtml < Html
+
+    def html attrs = nil
+      attrs ||= {}
+      attrs[ :xmlns] ||= "http://www.w3.org/1999/xhtml"
+      attrs[ :"xml:lang"] = language
+      attrs[ :lang] = ""
+      super
+    end
+
+    def a attrs = nil
+      attrs[ :name] ||= attrs[ :id] if attrs
+      super
+    end
+
+    private
+
+    def generate out
+      super do
+        @generator.close_standalone = true
+        @generator.assign_attributes = true
+        @generator.cdata_block = true
+        yield
+      end
+    end
+
+    def doctype_header
+      prop = { version: "1.0", encoding: @generator.encoding }
+      @generator.pi_tag :xml, prop
+      @generator.doctype "html", "PUBLIC", "-//W3C//DTD XHTML 1.1//EN",
+                          "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd"
     end
 
   end

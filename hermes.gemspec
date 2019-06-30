@@ -2,9 +2,7 @@
 #  hermes.gemspec  --  Hermes Gem specification
 #
 
-
 require "./lib/hermes/version.rb"
-
 
 Gem::Specification.new do |s|
   s.name              = Hermes::NAME
