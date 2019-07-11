@@ -44,25 +44,43 @@ module Hermes
       def inherited cls
         Html.main = cls
       end
-      def document out = nil
-        open_out out do |o|
-          @main.new.document o
+      def method_missing sym, *args, &block
+        i = (@main||self).new
+        i.generate do
+          i.send sym, *args, &block
         end
       end
-      private
-      def open_out out
-        if out then
-          yield out
-        else
-          p = $*.shift
-          if not p or p == "-" then
-            yield $stdout
-          else
-            File.open p, "w" do |f| yield f end
-          end
+      def open out
+        i = (@main||self).new
+        i.generate out do
+          yield i
         end
       end
     end
+
+    def generate out = nil
+      g = @generator
+      begin
+        @generator = Generator.new out||$stdout
+        yield
+      ensure
+        @generator = g
+      end
+    end
+
+    def document *args, &block
+      doctype_header
+      build *args, &block
+    end
+
+    def doctype_header
+      @generator.doctype "html"
+    end
+
+    def build
+      html { body { h1 { "It works." } } }
+    end
+
 
     def language
       if ENV[ "LANG"] =~ /\A\w{2,}/ then
@@ -70,33 +88,6 @@ module Hermes
         r.gsub! /_/, "-"
         r
       end
-    end
-
-    def build
-      html { body { h1 { "It works." } } }
-    end
-
-    def document out = nil
-      if String === out and out.ascii_only? then
-        out.force_encoding Encoding.default_external
-      end
-      generate out do
-        doctype_header
-        build
-      end
-    end
-
-    private
-
-    def generate out
-      @generator = Generator.new out
-      yield
-    ensure
-      @generator = nil
-    end
-
-    def doctype_header
-      @generator.doctype "html"
     end
 
 
