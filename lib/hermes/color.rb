@@ -247,7 +247,7 @@ module Hermes
 end
 
 
-class Fixnum
+class Float
   def to_gray
     Hermes::Color.gray self
   end
