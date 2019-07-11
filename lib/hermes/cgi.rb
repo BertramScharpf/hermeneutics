@@ -245,7 +245,7 @@ Offline mode: Enter name=value pairs on standard input.
         elsif   cls.const_defined? :CONTENT_TYPE then doc.class::CONTENT_TYPE
         end
         ct and res.headers.add :content_type, ct,
-                                  charset: res.body.encoding||__ENCODING__
+                    charset: res.body.encoding||Encoding.default_external
         if doc.respond_to? :cookies then
           doc.cookies do |c|
             res.headers.add :set_cookie, c

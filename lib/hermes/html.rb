@@ -109,7 +109,7 @@ module Hermes
       end
       def encoding
         case @out
-          when IO then @out.external_encoding||ENCODING
+          when IO then @out.external_encoding||Encoding.default_external
           else         @out.encoding
         end
       end

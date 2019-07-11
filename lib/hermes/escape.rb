@@ -24,9 +24,6 @@ Hermes::HeaderExt encodes to and decodes from E-Mail Header fields
 
 module Hermes
 
-  ENCODING = __ENCODING__
-
-
   # Translate HTML and XML character entities: <code>"&"</code> to
   # <code>"&amp;"</code> and vice versa.
   #
@@ -162,7 +159,7 @@ module Hermes
       r.gsub! RE_ASC do |x| "&#{SPECIAL_ASC[ x]};" end
       unless @keep_8bit then
         r.gsub! /[^\0-\x7f]/ do |c|
-          c.encode! ENCODING
+          c.encode! __ENCODING__
           s = SPECIAL[ c] || ("#x%04x" % c.ord)
           "&#{s};"
         end
@@ -228,7 +225,7 @@ module Hermes
 
       def numeric_decode s
         if s =~ /\A#(?:(\d+)|x([0-9a-f]+))\z/i then
-          c = ($1 ? $1.to_i : ($2.to_i 0x10)).chr ENCODING
+          c = ($1 ? $1.to_i : ($2.to_i 0x10)).chr Encoding::UTF_8
           c.encode! s.encoding
         end
       end
@@ -802,16 +799,17 @@ module Hermes
         cs.slice! /\*\w+\z/    # language as in rfc2231, 5.
         case cs
           when /\Autf-?7\z/i then
-            # Arrgh. Ruby 1.9 doesn't seem to do that.
+            # Ruby doesn't seem to do that.
             txt.force_encoding Encoding::US_ASCII
             txt.gsub! /\+([0-9a-zA-Z+\/]*)-?/ do
               if $1.empty? then
                 "+"
               else
                 s = ("#$1==".unpack "m*").join
-                (s.unpack "S>*").map { |x| x.chr ENCODING }.join
+                (s.unpack "S>*").map { |x| x.chr Encoding::UTF_8 }.join
               end
             end
+            txt.force_encoding Encoding::UTF_8
           when /\Aunknown/i then
             txt.force_encoding Encoding::US_ASCII
           else
