@@ -23,7 +23,7 @@ and CSS. Further, it is a CGI library.
   EOT
 
   COPYRIGHT   = "(C) 2013-2019 Bertram Scharpf"
-  LICENSE     = "BSD"
+  LICENSE     = "BSD-2-Clause"
   AUTHORS     = [ "Bertram Scharpf"]
   MAIL        = "<software@bertram-scharpf.de>"
   HOMEPAGE    = "http://www.bertram-scharpf.de"
