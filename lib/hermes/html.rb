@@ -104,7 +104,7 @@ module Hermes
           else         @out.encoding
         end
       end
-      def path
+      def file_path
         @out.path
       rescue NoMethodError
       end
@@ -273,7 +273,7 @@ module Hermes
       end
     end
 
-    def path ; @generator.path ; end
+    def file_path ; @generator.file_path ; end
 
     NBSP = Entities::NAMES[ "nbsp"]
 
@@ -305,8 +305,12 @@ module Hermes
                   protected_instance_methods +
                   instance_methods)).each { |m| undef_method m }
 
+    def tag? name
+      TAGS[ name]
+    end
+
     def method_missing name, *args, &block
-      t = TAGS[ name]
+      t = tag? name
       t or super
       if String === args.last then
         b = args.pop
