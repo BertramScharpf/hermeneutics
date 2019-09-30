@@ -12,14 +12,15 @@ module Hermes
   #
   # require "hermes/color"
   # require "hermes/html"
-  # class MyHtml < Html
+  #
+  # class MyHtml < Hermes::Html
   #   def build
   #     html {
   #       head {
   #         title { "Example" }
   #         comment "created as an example, #{Time.now}"
   #       }
-  #       body( :bgcolor => Color.from_s( "ffffef")) {
+  #       body( :bgcolor => Hermes::Color.from_s( "ffffef")) {
   #         h1 {
   #           pcdata "Ruby "
   #           a( :href => "www.w3.org") { "Html" }
@@ -35,7 +36,8 @@ module Hermes
   #     }
   #   end
   # end
-  # Html.document
+  #
+  # Hermes::Html.document
   #
   class Html
 
