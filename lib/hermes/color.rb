@@ -233,11 +233,11 @@ module Hermes
     end
 
     # :call-seq:
-    #   complemetary()                -> clr
+    #   complementary()                -> clr
     #
-    # Build the complemetary color.
+    # Build the complementary color.
     #
-    def complemetary ; Color.new *(tuple.map { |x| 0xff - x }) ; end
+    def complementary ; Color.new *(tuple.map { |x| 0xff - x }) ; end
 
   end
 
