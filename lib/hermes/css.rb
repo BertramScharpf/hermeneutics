@@ -44,47 +44,46 @@ module Hermes
   class Css
 
     class <<self
-
       attr_accessor :main
       def inherited cls
         Css.main = cls
       end
-
-      private
-
-      def open_out out
-        if out or $*.empty? then
-          yield out
-        else
-          File.open $*.shift, "w" do |f| yield f end
+      def open out = nil
+        i = (@main||self).new
+        i.generate out do
+          yield i
         end
       end
-
-      public
-
-      def document out = nil
-        open_out out do |o|
-          @main.new.document o
+      def document *args, &block
+        open do |i|
+          i.document *args, &block
         end
       end
-
-      def single hash
-        if block_given? then
-          hash.map { |k,v|
-            if Symbol === k then k = k.new_string ; k.gsub! /_/, "-" end
-            if Array  === v then v = v.join " "                      end
-            yield "#{k}: #{v};"
-          }
-        else
-          r = []
-          single hash do |s|
-            r.push s
+      def write_file name = nil
+        name ||= (File.basename $0, ".rb") + ".css"
+        File.open name, "w" do |f|
+          open f do |i|
+            if block_given? then
+              yield i
+            else
+              i.document
+            end
           end
-          r
         end
       end
 
     end
+
+    def generate out = nil
+      o = @out
+      begin
+        @out = out||$stdout
+        yield
+      ensure
+        @out = o
+      end
+    end
+
 
     class Selector
       def initialize
@@ -134,11 +133,8 @@ module Hermes
       @selector = Selector.new
     end
 
-    def document out = nil
-      @out = out||$stdout
-      build
-    ensure
-      @out = nil
+    def document *args, &block
+      build *args, &block
     end
 
     def path
@@ -237,10 +233,26 @@ module Hermes
       else
         [ " ", " "]
       end
-      self.class.single p do |s|
+      single p do |s|
         @out << ind << s << nl
       end
       @out << "}" << $/
+    end
+
+    def single hash
+      if block_given? then
+        hash.map { |k,v|
+          if Symbol === k then k = k.new_string ; k.gsub! /_/, "-" end
+          if Array  === v then v = v.join " "                      end
+          yield "#{k}: #{v};"
+        }
+      else
+        r = []
+        single hash do |s|
+          r.push s
+        end
+        r
+      end
     end
 
   end

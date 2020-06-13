@@ -46,16 +46,27 @@ module Hermes
       def inherited cls
         Html.main = cls
       end
-      def method_missing sym, *args, &block
-        i = (@main||self).new
-        i.generate do
-          i.send sym, *args, &block
-        end
-      end
-      def open out
+      def open out = nil
         i = (@main||self).new
         i.generate out do
           yield i
+        end
+      end
+      def document *args, &block
+        open do |i|
+          i.document *args, &block
+        end
+      end
+      def write_file name = nil
+        name ||= (File.basename $0, ".rb") + ".html"
+        File.open name, "w" do |f|
+          open f do |i|
+            if block_given? then
+              yield i
+            else
+              i.document
+            end
+          end
         end
       end
     end
