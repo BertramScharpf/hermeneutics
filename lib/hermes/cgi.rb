@@ -9,28 +9,18 @@ require "hermes/html"
 
 module Hermes
 
-  class PostedFile < String
-    attr_reader :filename, :content_type
-    def initialize data, filename, content_type
-      @filename, @content_type = filename, content_type
-      super data
-    end
-  end
-
-
   class Html
 
     CONTENT_TYPE = "text/html"
 
     attr_reader :cgi
 
-    def initialize cgi, *args
+    def initialize cgi
       @cgi = cgi
     end
 
-    def form! name, attrs = nil, &block
-      attrs ||= {}
-      attrs[ :name] = name
+    def form! name, **attrs, &block
+      attrs[ :name  ] = name
       attrs[ :action] = scriptpath attrs[ :action]
       form attrs, &block
     end
@@ -65,7 +55,8 @@ module Hermes
   #
   # class MyCgi < Cgi
   #   def run
-  #     if params.empty? then
+  #     p = parameters
+  #     if p.empty? then
   #       location "/sorry.rb"
   #     else
   #       document MyHtml
@@ -84,7 +75,7 @@ module Hermes
         Cgi.main = cls
       end
       def execute out = nil
-        @main.new.execute out
+        (@main||self).new.execute out
       end
     end
 
@@ -93,102 +84,87 @@ module Hermes
       document Html
     end
 
-    def initialize inp = nil
-      $env ||= ENV
-      @inp ||= $stdin
-      @params = case request_method
-        when "GET", "HEAD" then parse_query query_string
-        when "POST"        then parse_posted
-        else                    parse_input
+    def parameters inp = nil, &block
+      if block_given? then
+        case request_method
+          when "GET", "HEAD" then parse_query query_string, &block
+          when "POST"        then parse_posted inp||$stdin, &block
+          else                    parse_input &block
+        end
+      else
+        p = {}
+        parameters do |k,v|
+          p[ k] = v
+        end
+        p
       end
-    ensure
-      @inp = nil
     end
-
-    attr_reader :params
-    alias param params
-    alias parameters params
-    alias parameter params
-    def [] key ; @params[ key] ; end
 
     CGIENV = %w(content document gateway http query
                           remote request script server unique)
 
     def method_missing sym, *args
       if args.empty? and CGIENV.include? sym[ /\A(\w+?)_\w+\z/, 1] then
-        $env[ sym.to_s.upcase]
+        ENV[ sym.to_s.upcase]
       else
         super
       end
     end
 
     def https?
-      $env[ "HTTPS"].notempty?
+      ENV[ "HTTPS"].notempty?
     end
 
     private
 
-    def parse_query data
-      URLText.decode_hash data
+    def parse_query data, &block
+      URLText.decode_hash data, &block
     end
 
-    def parse_posted
-      data = @inp.read
+    def parse_posted inp, &block
+      data = inp.read
       data.bytesize == content_length.to_i or
         @warn = "Content length #{content_length} is wrong (#{data.bytesize})."
       ct = ContentType.parse content_type
       case ct.fulltype
         when "application/x-www-form-urlencoded" then
-          parse_query data
+          parse_query data, &block
         when "multipart/form-data" then
           mp = Multipart.parse data, ct.hash
-          parse_multipart mp
+          parse_multipart mp, &block
         when "text/plain" then
           # Suppose this is for testing purposes only.
-          l = []
-          data.each_line { |a| l.push a }
-          mk_params l
+          mk_params data.lines, &block
         else
-          parse_query data
+          parse_query data, &block
       end
     end
 
     def parse_multipart mp
-      URLText::Dict.create do |p|
-        mp.each { |part|
-          cd = part.headers.content_disposition
-          if cd.caption == "form-data" then
-            val = if (fn = cd.filename) then
-              PostedFile.new part.body, fn, part.headers.content_type
-            else
-              part.body
-            end
-            p.parse cd.name, val
-          end
-        }
-      end
+      mp.each { |part|
+        cd = part.headers.content_disposition
+        if cd.caption == "form-data" then
+          yield cd.name, part.body, **cd.hash
+        end
+      }
     end
 
     def mk_params l
-      URLText::Dict.create do |p|
-        l.each { |s|
-          s.chomp! unless s.frozen?
-          k, v = s.split %r/=/
-          if k then
-            k.strip!
-            p.parse k, v||true if k.notempty?
-          end
-        }
-      end
+      l.each { |s|
+        k, v = s.split %r/=/
+        v ||= k
+        [k, v].each { |x| x.strip! }
+        yield k, v
+      }
     end
 
-    def parse_input
+    def parse_input &block
       if $*.any? then
         l = $*
       else
         if $stdin.tty? then
-          $stderr.puts <<-EOT
-Offline mode: Enter name=value pairs on standard input.
+          $stderr.puts <<~EOT
+            Offline mode: Enter name=value pairs on standard input.
           EOT
         end
         l = []
@@ -197,7 +173,7 @@ Offline mode: Enter name=value pairs on standard input.
         end
       end
       ENV[ "SCRIPT_NAME"] = $0
-      mk_params l
+      mk_params l, &block
     end
 
 
@@ -236,11 +212,14 @@ Offline mode: Enter name=value pairs on standard input.
       @out = nil
     end
 
-    def document cls = Html, *args
+    def document cls = Html, *args, &block
       done { |res|
-        doc = cls.new self, *args
+        doc = cls.new self
         res.body = ""
-        doc.document res.body
+        doc.generate res.body do
+          doc.document *args, &block
+        end
+
         ct = if doc.respond_to?    :content_type then doc.content_type
         elsif   cls.const_defined? :CONTENT_TYPE then doc.class::CONTENT_TYPE
         end
@@ -277,7 +256,7 @@ Offline mode: Enter name=value pairs on standard input.
 
 
     if defined? MOD_RUBY then
-      # This has not been tested yet.
+      # This has not been tested.
       def query_string
         Apache::request.args
       end

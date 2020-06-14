@@ -192,7 +192,7 @@ module Hermes
         end
         if not v.ascii_only? or v =~ /[=;"]/ then
           enc = v.encoding
-          if (l = ($env||ENV)[ "LANG"]) then
+          if (l = ENV[ "LANG"]) then
             l, = l.split /\W/, 2
             lang = l.gsub "_", "-"
           end

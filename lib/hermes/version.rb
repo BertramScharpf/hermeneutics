@@ -14,15 +14,15 @@
 module Hermes
 
   NAME        = "hermes"
-  VERSION     = "1.7".freeze
+  VERSION     = "1.8".freeze
   SUMMARY     = "CGI and mail handling"
 
-  DESCRIPTION = <<-EOT
-This library provides classes for generating and parsing mail, HTML
-and CSS. Further, it is a CGI library.
+  DESCRIPTION = <<~EOT
+    This library provides classes for generating and parsing mail, HTML
+    and CSS. Further, it is a CGI library.
   EOT
 
-  COPYRIGHT   = "(C) 2013-2019 Bertram Scharpf"
+  COPYRIGHT   = "(C) 2013-2020 Bertram Scharpf"
   LICENSE     = "BSD-2-Clause"
   AUTHORS     = [ "Bertram Scharpf"]
   MAIL        = "<software@bertram-scharpf.de>"

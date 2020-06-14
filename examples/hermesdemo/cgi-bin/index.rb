@@ -108,7 +108,7 @@ To raise an error while page building, start the input field with the word
       }
       h2 "Environment"
       pre {
-        $env.sort.each { |k,v| _ "#{k} = #{v}#$/" }
+        ENV.sort.each { |k,v| _ "#{k} = #{v}#$/" }
       }
     end
 

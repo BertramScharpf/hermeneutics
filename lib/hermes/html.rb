@@ -132,6 +132,7 @@ module Hermes
       # 3 = and advance indent
       # 4 = Block without any indent
       def tag tag, type, attrs = nil
+        tag = tag.to_s
         nls = type & 0xf
         if (type & 0x10).nonzero? then
           brace nls>0 do
@@ -167,6 +168,7 @@ module Hermes
       end
       # Processing Instruction
       def pi_tag tag, attrs = nil
+        tag = tag.to_s
         brace true do
           begin
             @out << "?" << tag
@@ -360,10 +362,9 @@ module Hermes
       script mime, str, &block
     end
 
-    def html attrs = nil
-      attrs ||= {}
+    def html **attrs
       attrs[ :"lang"] ||= language
-      method_missing :html, attrs do yield end
+      method_missing :html, **attrs do yield end
     end
 
     def head attrs = nil
@@ -432,8 +433,7 @@ module Hermes
 
   class XHtml < Html
 
-    def html attrs = nil
-      attrs ||= {}
+    def html **attrs
       attrs[ :xmlns] ||= "http://www.w3.org/1999/xhtml"
       attrs[ :"xml:lang"] = language
       attrs[ :lang] = ""
