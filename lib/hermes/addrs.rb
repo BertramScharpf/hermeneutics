@@ -8,8 +8,8 @@
 
 :section: Classes definied here
 
-Hermes::Addr      is a single address
-Hermes::AddrList  is a list of addresses in mail header fields.
+Hermeneutics::Addr      is a single address
+Hermeneutics::AddrList  is a list of addresses in mail header fields.
 
 = Remark
 
@@ -35,7 +35,7 @@ class NilClass
 end
 
 
-module Hermes
+module Hermeneutics
 
   # A parser and generator for mail address fields.
   #

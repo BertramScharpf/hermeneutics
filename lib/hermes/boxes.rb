@@ -6,12 +6,12 @@
 
 :section: Classes definied here
 
-Hermes::Box is a general Mailbox.
+Hermeneutics::Box is a general Mailbox.
 
-Hermes::MBox is the traditional mbox format (text file, separated by a
+Hermeneutics::MBox is the traditional mbox format (text file, separated by a
 blank line).
 
-Hermes::Maildir is the maildir format.
+Hermeneutics::Maildir is the maildir format.
 
 
 =end
@@ -22,7 +22,7 @@ require "supplement/locked"
 require "date"
 
 
-module Hermes
+module Hermeneutics
 
   # Mailboxes
   class Box

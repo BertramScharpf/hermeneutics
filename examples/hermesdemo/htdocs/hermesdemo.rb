@@ -11,7 +11,7 @@ require "hermes/color"
 
 module HermesDemo
 
-  class MainCss < Hermes::Css
+  class MainCss < Hermeneutics::Css
 
     BG_BLUE = "dfdfff".to_rgb
 
@@ -23,5 +23,5 @@ module HermesDemo
 
 end
 
-Hermes::Css.document
+Hermeneutics::Css.document
 

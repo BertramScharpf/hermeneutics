@@ -6,15 +6,15 @@
 
 :section: Classes definied here
 
-Hermes::Color handles 24-bit colors.
+Hermeneutics::Color handles 24-bit colors.
 
-Hermes::Colour is an alias for <code>Hermes::Color</code>.
+Hermeneutics::Colour is an alias for <code>Hermeneutics::Color</code>.
 
 =end
 
 
 
-module Hermes
+module Hermeneutics
 
   # Generate HTML color values.
   #
@@ -241,7 +241,7 @@ module Hermes
 
   end
 
-  # Alias for class <code>Hermes::Color</code> in British English.
+  # Alias for class <code>Hermeneutics::Color</code> in British English.
   Colour = Color
 
 end
@@ -249,7 +249,7 @@ end
 
 class Float
   def to_gray
-    Hermes::Color.gray self
+    Hermeneutics::Color.gray self
   end
   alias to_grey to_gray
 end
@@ -260,16 +260,16 @@ class String
   end
   alias to_grey to_gray
   def to_rgb
-    Hermes::Color.from_s self
+    Hermeneutics::Color.from_s self
   end
 end
 
 class Array
   def to_rgb
-    Hermes::Color.new *self
+    Hermeneutics::Color.new *self
   end
   def to_hsv
-    Hermes::Color.from_hsv *self
+    Hermeneutics::Color.from_hsv *self
   end
 end
 

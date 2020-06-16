@@ -5,7 +5,7 @@
 require "hermes/html"
 
 
-module Hermes
+module Hermeneutics
 
   # == Example
   #
@@ -39,7 +39,7 @@ module Hermes
   #       selectors @b, @bt, :fon_size => :large
   #     end
   #   end
-  #   Hermes::Css.document
+  #   Hermeneutics::Css.document
   #
   class Css
 

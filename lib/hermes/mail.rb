@@ -4,7 +4,7 @@
 
 require "hermes/message"
 
-module Hermes
+module Hermeneutics
 
   class Mail < Message
 

@@ -7,7 +7,7 @@ require "hermes/message"
 require "hermes/html"
 
 
-module Hermes
+module Hermeneutics
 
   class Html
 

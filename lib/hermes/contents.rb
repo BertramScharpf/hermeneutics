@@ -6,16 +6,16 @@
 
 :section: Classes definied here
 
-Hermes::Contents is a content field parser.
+Hermeneutics::Contents is a content field parser.
 
-Hermes::ContentType parses "Content-Type" header fields.
+Hermeneutics::ContentType parses "Content-Type" header fields.
 
 =end
 
 require "hermes/escape"
 
 
-module Hermes
+module Hermeneutics
 
   # A parser for header fields like DKIM-Signature
   #

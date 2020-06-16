@@ -1,5 +1,5 @@
 #
-#  hermesmail-rules-test  --  Example Hermes rulefile
+#  hermesmail-rules-test  --  Example Hermeneutics rulefile
 #
 
 self.spooldir  = "/var/mail"

@@ -8,7 +8,7 @@ require "hermes/boxes"
 require "supplement/locked"
 
 
-module Hermes
+module Hermeneutics
 
   class Mail
 

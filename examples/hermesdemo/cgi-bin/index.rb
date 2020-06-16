@@ -2,7 +2,7 @@
 # encoding: UTF-8
 
 #
-#  index.rb  --  Just show some Hermes features
+#  index.rb  --  Just show some Hermeneutics features
 #
 
 require "hermes/cgi"
@@ -10,7 +10,7 @@ require "hermes/cgi"
 
 module HermesDemo
 
-  class IndexHtml < Hermes::Html
+  class IndexHtml < Hermeneutics::Html
 
     def initialize cgi
       super
@@ -20,8 +20,8 @@ module HermesDemo
     def build
       html {
         head {
-          title { "Hermes Demo" }
-          comment "created by Hermes at #@now\n"
+          title { "Hermeneutics Demo" }
+          comment "created by Hermeneutics at #@now\n"
           link :rel => "stylesheet", :type => "text/css",
                                       :href => "../hermesdemo.css"
         }
@@ -36,7 +36,7 @@ module HermesDemo
     end
 
     def build_contents
-      h1 { "Welcome to Hermes" }
+      h1 { "Welcome to Hermeneutics" }
       p "This page was built at #@now by a process with the id #$$."
       p "This page was transmitted by #{cgi.https? ? :HTTPS : :HTTP}."
       previous_parameters
@@ -114,7 +114,7 @@ To raise an error while page building, start the input field with the word
 
   end
 
-  class IndexCgi < Hermes::Cgi
+  class IndexCgi < Hermeneutics::Cgi
 
     attr_reader :mailto
 
@@ -136,7 +136,7 @@ To raise an error while page building, start the input field with the word
       @mailto = parameters[ :foo]
       require "hermes/transports"
       require "socket"
-      m = Hermes::Mail.create
+      m = Hermeneutics::Mail.create
       m.headers.add :from, "webmaster@#{Socket.gethostname}"
       m.headers.add :to, @mailto
       m.headers.add :subject, "The Lizard-Spock Expansion"
@@ -155,5 +155,5 @@ Rock, and as it always has, Rock crushes Scissors.
 
 end
 
-Hermes::Cgi.execute
+Hermeneutics::Cgi.execute
 

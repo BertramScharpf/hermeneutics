@@ -15,7 +15,7 @@ class NilClass
   end
 end
 
-module Hermes
+module Hermeneutics
 
   class PlainText < String
     class <<self

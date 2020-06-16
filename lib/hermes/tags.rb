@@ -6,9 +6,9 @@
 
 :section: Classes definied here
 
-Hermes::Parser Parses HTML source and builds a tree
+Hermeneutics::Parser Parses HTML source and builds a tree
 
-Hermes::Tags Compiles parsed code to a tag tree
+Hermeneutics::Tags Compiles parsed code to a tag tree
 
 =end
 
@@ -16,7 +16,7 @@ Hermes::Tags Compiles parsed code to a tag tree
 require "hermes/escape"
 
 
-module Hermes
+module Hermeneutics
 
   # Parse a HTML file or string.
   #

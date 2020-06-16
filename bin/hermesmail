@@ -15,7 +15,7 @@ require "hermes/transports"
 require "hermes/cli/pop"
 
 
-module Hermes
+module Hermeneutics
 
   class Processed < Mail
 
@@ -158,11 +158,11 @@ module Hermes
   class MailApp < Application
 
     NAME      = "hermesmail"
-    VERSION   = Hermes::VERSION
+    VERSION   = Hermeneutics::VERSION
     SUMMARY   = "A mail delivery agent written in Ruby"
-    COPYRIGHT = Hermes::COPYRIGHT
-    LICENSE   = Hermes::LICENSE
-    AUTHORS   = Hermes::AUTHORS
+    COPYRIGHT = Hermeneutics::COPYRIGHT
+    LICENSE   = Hermeneutics::LICENSE
+    AUTHORS   = Hermeneutics::AUTHORS
 
     DESCRIPTION = <<-EOT
 This mail delivery agent (MDA) reads a configuration file

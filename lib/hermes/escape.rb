@@ -11,18 +11,18 @@ require "supplement"
 
 :section: Classes definied here
 
-Hermes::Entities encodes to and decodes from HTML-Entities
+Hermeneutics::Entities encodes to and decodes from HTML-Entities
 (<code>&amp;</code> etc.)
 
-Hermes::URLText encodes to and decodes from URLs
+Hermeneutics::URLText encodes to and decodes from URLs
 (<code>%2d</code> etc.)
 
-Hermes::HeaderExt encodes to and decodes from E-Mail Header fields
+Hermeneutics::HeaderExt encodes to and decodes from E-Mail Header fields
 (<code>=?UTF-8?Q?=C3=B6?=</code> etc.).
 
 =end
 
-module Hermes
+module Hermeneutics
 
   # Translate HTML and XML character entities: <code>"&"</code> to
   # <code>"&amp;"</code> and vice versa.

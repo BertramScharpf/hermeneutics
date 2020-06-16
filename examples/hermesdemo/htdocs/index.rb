@@ -10,12 +10,12 @@ require "hermes/html"
 
 module HermesDemo
 
-  class IndexHtml < Hermes::Html
+  class IndexHtml < Hermeneutics::Html
 
     DELAY = 0
-    REDIR = Hermes::Contents.new DELAY, :url => "cgi-bin/index.rb"
+    REDIR = Hermeneutics::Contents.new DELAY, :url => "cgi-bin/index.rb"
 
-    TITLE = "Hermes Demo"
+    TITLE = "Hermeneutics Demo"
 
     def build
       html {
@@ -38,5 +38,5 @@ module HermesDemo
 
 end
 
-Hermes::Html.document
+Hermeneutics::Html.document
 

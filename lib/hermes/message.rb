@@ -58,7 +58,7 @@ class IO
 end
 
 
-module Hermes
+module Hermeneutics
 
   class Multipart < Mime
 

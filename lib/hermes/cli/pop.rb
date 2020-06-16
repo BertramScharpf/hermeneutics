@@ -2,7 +2,7 @@
 #  hermes/cli/pop.rb  --  POP client
 #
 
-module Hermes
+module Hermeneutics
 
   module Cli
 

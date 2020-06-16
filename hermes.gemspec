@@ -1,18 +1,18 @@
 #
-#  hermes.gemspec  --  Hermes Gem specification
+#  hermes.gemspec  --  Hermeneutics Gem specification
 #
 
 require "./lib/hermes/version.rb"
 
 Gem::Specification.new do |s|
-  s.name              = Hermes::NAME
-  s.version           = Hermes::VERSION
-  s.summary           = Hermes::SUMMARY
-  s.description       = Hermes::DESCRIPTION
-  s.license           = Hermes::LICENSE
-  s.authors           = Hermes::AUTHORS
-  s.email             = Hermes::MAIL
-  s.homepage          = Hermes::HOMEPAGE
+  s.name              = Hermeneutics::NAME
+  s.version           = Hermeneutics::VERSION
+  s.summary           = Hermeneutics::SUMMARY
+  s.description       = Hermeneutics::DESCRIPTION
+  s.license           = Hermeneutics::LICENSE
+  s.authors           = Hermeneutics::AUTHORS
+  s.email             = Hermeneutics::MAIL
+  s.homepage          = Hermeneutics::HOMEPAGE
 
   s.requirements      = "Just Ruby"
   s.add_dependency      "supplement", "~>2"

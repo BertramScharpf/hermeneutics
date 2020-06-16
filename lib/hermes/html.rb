@@ -6,21 +6,21 @@ require "hermes/escape"
 require "hermes/contents"
 
 
-module Hermes
+module Hermeneutics
 
   # = Example
   #
   # require "hermes/color"
   # require "hermes/html"
   #
-  # class MyHtml < Hermes::Html
+  # class MyHtml < Hermeneutics::Html
   #   def build
   #     html {
   #       head {
   #         title { "Example" }
   #         comment "created as an example, #{Time.now}"
   #       }
-  #       body( :bgcolor => Hermes::Color.from_s( "ffffef")) {
+  #       body( :bgcolor => Hermeneutics::Color.from_s( "ffffef")) {
   #         h1 {
   #           pcdata "Ruby "
   #           a( :href => "www.w3.org") { "Html" }
@@ -37,7 +37,7 @@ module Hermes
   #   end
   # end
   #
-  # Hermes::Html.document
+  # Hermeneutics::Html.document
   #
   class Html
 

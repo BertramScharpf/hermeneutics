@@ -4,14 +4,14 @@
 #  hermes/version.rb  --  Version number
 #
 
-# :main:Hermes
+# :main:Hermeneutics
 #
 # = Overview
 #
 # This library provides classes for generating and parsing mail, HTML
 # and CSS. Further, it is a CGI library.
 #
-module Hermes
+module Hermeneutics
 
   NAME        = "hermes"
   VERSION     = "1.8".freeze
