@@ -19,33 +19,19 @@ module Hermes
       @cgi = cgi
     end
 
-    def form! name, **attrs, &block
-      attrs[ :name  ] = name
-      attrs[ :action] = scriptpath attrs[ :action]
-      form attrs, &block
+    def form! **attrs, &block
+      attrs[ :action] = @cgi.fullpath attrs[ :action]
+      form **attrs, &block
     end
 
     def href dest, params = nil, anchor = nil
       @utx ||= URLText.new
-      dest = scriptpath dest
+      dest = @cgi.fullpath dest
       @utx.mkurl dest, params, anchor
     end
 
     def href! params = nil, anchor = nil
       href nil, params, anchor
-    end
-
-    private
-
-    def scriptpath dest
-      unless dest =~ %r{\A/} then
-        if dest then
-          dest =~ /\.\w+\z/ or dest += ".rb"
-        else
-          dest = File.basename @cgi.script_name
-        end
-      end
-      dest
     end
 
   end
@@ -239,19 +225,18 @@ module Hermes
       end
       utx = URLText.new mask_space: true
       unless dest =~ %r{\A\w+://} then
-        unless dest =~ %r{\A/} then
-          dest = if dest then
-            d = File.dirname script_name
-            dest =~ /\.\w+\z/ or dest += ".rb"
-            File.join d, dest
-          else
-            script_name
-          end
-        end
-        dest = %Q'#{https? ? "https" : "http"}://#{http_host}#{dest}'
+        dest = %Q'#{https? ? "https" : "http"}://#{http_host}#{fullpath dest}'
       end
       url = utx.mkurl dest, params, anchor
       done { |res| res.headers.add "Location", url }
+    end
+
+    def fullpath dest
+      if dest then
+        dest =~ %r{\A/} || dest =~ /\.\w+\z/ ? dest : dest + ".rb"
+      else
+        File.basename script_name
+      end
     end
 
 

@@ -272,18 +272,13 @@ module Hermes
         attrs.each { |k,v|
           if Symbol === k then k = k.new_string ; k.gsub! /_/, "-" end
           v = case v
-            when true then
-              next unless @assign_attributes
-              k.to_s
-            when Array then
-              v.compact.join " "
-            when nil then
-              next
-            else
-              v.to_s
+            when Array      then v.compact.join " "
+            when true       then k.to_s if @assign_attributes
+            when nil, false then next
+            else                 v.to_s
           end
-          v.notempty? or next
-          @out << " " << k << "=\"" << (@ent.encode v) << "\""
+          @out << " " << k
+          @out << "=\"" << (@ent.encode v) << "\"" if v.notempty?
         }
       end
     end
@@ -395,19 +390,17 @@ module Hermes
       Field[ type, attrs]
     end
 
-    def label field, attrs = nil, &block
+    def label field = nil, attrs = nil, &block
       if String === attrs then
         label field do attrs end
-        return
-      end
-      if Field === field or attrs then
-        a = attrs
-        attrs = { for: field.attrs[ :id] }
-        attrs.merge! a if a
       else
-        attrs = field
+        if Field === field or attrs then
+          attrs = attrs.merge for: field.attrs[ :id]
+        else
+          attrs = field
+        end
+        method_missing :label, attrs, &block
       end
-      method_missing :label, attrs, &block
     end
 
     def input arg, &block
