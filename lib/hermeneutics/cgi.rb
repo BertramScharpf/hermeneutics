@@ -1,10 +1,10 @@
 #
-#  hermes/cgi.rb  -- CGI responses
+#  hermeneutics/cgi.rb  -- CGI responses
 #
 
-require "hermes/escape"
-require "hermes/message"
-require "hermes/html"
+require "hermeneutics/escape"
+require "hermeneutics/message"
+require "hermeneutics/html"
 
 
 module Hermeneutics

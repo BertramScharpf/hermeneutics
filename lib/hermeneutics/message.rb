@@ -1,10 +1,10 @@
 #
-#  hermes/message.rb  --  a message as in mails or in HTTP communication
+#  hermeneutics/message.rb  --  a message as in mails or in HTTP communication
 #
 
-require "hermes/types"
-require "hermes/contents"
-require "hermes/addrs"
+require "hermeneutics/types"
+require "hermeneutics/contents"
+require "hermeneutics/addrs"
 
 
 class NilClass

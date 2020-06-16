@@ -5,8 +5,8 @@
 #  htdocs/hermesdemo.rb  --  Build the CSS
 #
 
-require "hermes/css"
-require "hermes/color"
+require "hermeneutics/css"
+require "hermeneutics/color"
 
 
 module HermesDemo

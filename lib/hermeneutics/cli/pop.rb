@@ -1,5 +1,5 @@
 #
-#  hermes/cli/pop.rb  --  POP client
+#  hermeneutics/cli/pop.rb  --  POP client
 #
 
 module Hermeneutics

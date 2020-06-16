@@ -1,8 +1,8 @@
 #
-#  hermes/mail.rb  --  A mail
+#  hermeneutics/mail.rb  --  A mail
 #
 
-require "hermes/message"
+require "hermeneutics/message"
 
 module Hermeneutics
 

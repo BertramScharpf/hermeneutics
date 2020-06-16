@@ -1,5 +1,5 @@
 #
-#  hermes/tags.rb  --  Parse HTML code
+#  hermeneutics/tags.rb  --  Parse HTML code
 #
 
 =begin rdoc
@@ -13,7 +13,7 @@ Hermeneutics::Tags Compiles parsed code to a tag tree
 =end
 
 
-require "hermes/escape"
+require "hermeneutics/escape"
 
 
 module Hermeneutics
@@ -147,7 +147,7 @@ module Hermeneutics
               when "meta" then
                 e.attrs[ "charset"] || (
                   if e.attrs[ "http-equiv"] == "Content-Type" then
-                    require "hermes/contents"
+                    require "hermeneutics/contents"
                     c = Contents.parse e.attrs[ "content"]
                     c[ "charset"]
                   end

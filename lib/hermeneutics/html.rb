@@ -1,17 +1,17 @@
 #
-#  hermes/html.rb  -- smart HTML generation
+#  hermeneutics/html.rb  -- smart HTML generation
 #
 
-require "hermes/escape"
-require "hermes/contents"
+require "hermeneutics/escape"
+require "hermeneutics/contents"
 
 
 module Hermeneutics
 
   # = Example
   #
-  # require "hermes/color"
-  # require "hermes/html"
+  # require "hermeneutics/color"
+  # require "hermeneutics/html"
   #
   # class MyHtml < Hermeneutics::Html
   #   def build

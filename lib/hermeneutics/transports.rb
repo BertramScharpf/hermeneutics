@@ -1,9 +1,9 @@
 #
-#  hermes/transports.rb  --  transporting mails
+#  hermeneutics/transports.rb  --  transporting mails
 #
 
-require "hermes/mail"
-require "hermes/boxes"
+require "hermeneutics/mail"
+require "hermeneutics/boxes"
 
 require "supplement/locked"
 
@@ -15,7 +15,7 @@ module Hermeneutics
     SPOOLDIR = "/var/mail"
     MAILDIR  = "Mail"
     SENDMAIL = "/usr/sbin/sendmail"
-    SYSDIR   = ".hermes"
+    SYSDIR   = ".hermeneutics"
 
     LEVEL = {}
     a = 0

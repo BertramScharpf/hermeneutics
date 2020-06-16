@@ -1,5 +1,5 @@
 #
-#  hermes/types.rb  --  Header field types
+#  hermeneutics/types.rb  --  Header field types
 #
 
 require "supplement"
@@ -7,7 +7,7 @@ require "supplement"
 require "time"
 require "bigdecimal"
 
-require "hermes/escape"
+require "hermeneutics/escape"
 
 
 class NilClass

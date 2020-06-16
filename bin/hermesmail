@@ -10,9 +10,9 @@ rescue LoadError
   raise "This requires the Gem 'appl'."
 end
 
-require "hermes/version"
-require "hermes/transports"
-require "hermes/cli/pop"
+require "hermeneutics/version"
+require "hermeneutics/transports"
+require "hermeneutics/cli/pop"
 
 
 module Hermeneutics

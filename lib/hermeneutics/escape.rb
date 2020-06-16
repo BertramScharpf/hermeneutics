@@ -1,7 +1,7 @@
 # encoding: UTF-8
 
 #
-#  hermes/escape.rb  --  Various encoding schemes for internet purposes
+#  hermeneutics/escape.rb  --  Various encoding schemes for internet purposes
 #
 
 require "supplement"

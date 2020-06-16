@@ -20,8 +20,8 @@ def process
     deposit B_SPAM_WEBDE
   end
   case headers.list_id
-    when "test@hermes.local"    then deposit B_TEST_MAIN
-    when "another@hermes.local" then deposit B_TEST_SECONDARY
+    when "test@hermeneutics.local"    then deposit B_TEST_MAIN
+    when "another@hermeneutics.local" then deposit B_TEST_SECONDARY
   end
 end
 

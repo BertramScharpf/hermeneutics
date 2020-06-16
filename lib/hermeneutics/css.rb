@@ -1,16 +1,16 @@
 #
-#  hermes/css.rb  -- CSS generation
+#  hermeneutics/css.rb  -- CSS generation
 #
 
-require "hermes/html"
+require "hermeneutics/html"
 
 
 module Hermeneutics
 
   # == Example
   #
-  #   require "hermes/css"
-  #   require "hermes/color"
+  #   require "hermeneutics/css"
+  #   require "hermeneutics/color"
   #   class MyCss < Css
   #
   #     COL1  = "904f02".to_rgb

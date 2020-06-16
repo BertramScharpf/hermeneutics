@@ -1,7 +1,7 @@
 # encoding: UTF-8
 
 #
-#  hermes/addrs.rb  --  Extract addresses out of a string
+#  hermeneutics/addrs.rb  --  Extract addresses out of a string
 #
 
 =begin rdoc
@@ -24,7 +24,7 @@ specification is a pain.
 
 =end
 
-require "hermes/escape"
+require "hermeneutics/escape"
 
 
 class NilClass

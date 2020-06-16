@@ -5,7 +5,7 @@
 #  index.rb  --  Redirection
 #
 
-require "hermes/html"
+require "hermeneutics/html"
 
 
 module HermesDemo

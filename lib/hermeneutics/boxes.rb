@@ -1,5 +1,5 @@
 #
-#  hermes/boxes.rb  --  Mailboxes
+#  hermeneutics/boxes.rb  --  Mailboxes
 #
 
 =begin rdoc

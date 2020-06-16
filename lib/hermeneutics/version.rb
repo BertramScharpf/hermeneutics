@@ -1,7 +1,7 @@
 # encoding: UTF-8
 
 #
-#  hermes/version.rb  --  Version number
+#  hermeneutics/version.rb  --  Version number
 #
 
 # :main:Hermeneutics
@@ -13,7 +13,7 @@
 #
 module Hermeneutics
 
-  NAME        = "hermes"
+  NAME        = "hermeneutics"
   VERSION     = "1.8".freeze
   SUMMARY     = "CGI and mail handling"
 

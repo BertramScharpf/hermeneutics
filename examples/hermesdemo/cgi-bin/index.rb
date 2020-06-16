@@ -5,7 +5,7 @@
 #  index.rb  --  Just show some Hermeneutics features
 #
 
-require "hermes/cgi"
+require "hermeneutics/cgi"
 
 
 module HermesDemo
@@ -134,7 +134,7 @@ To raise an error while page building, start the input field with the word
     def do_mail
       parameters[ :mail] or return
       @mailto = parameters[ :foo]
-      require "hermes/transports"
+      require "hermeneutics/transports"
       require "socket"
       m = Hermeneutics::Mail.create
       m.headers.add :from, "webmaster@#{Socket.gethostname}"

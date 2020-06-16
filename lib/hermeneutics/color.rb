@@ -1,5 +1,5 @@
 #
-#  hermes/color.rb  -- Color calculation
+#  hermeneutics/color.rb  -- Color calculation
 #
 
 =begin rdoc

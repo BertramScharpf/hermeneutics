@@ -1,5 +1,5 @@
 #
-#  hermes/contents.rb  --  Handle header fields like Content-Type
+#  hermeneutics/contents.rb  --  Handle header fields like Content-Type
 #
 
 =begin rdoc
@@ -12,7 +12,7 @@ Hermeneutics::ContentType parses "Content-Type" header fields.
 
 =end
 
-require "hermes/escape"
+require "hermeneutics/escape"
 
 
 module Hermeneutics
