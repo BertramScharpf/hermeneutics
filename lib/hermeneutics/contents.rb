@@ -102,8 +102,8 @@ module Hermeneutics
 
     # Create a +Dictionary+ object from a value and a hash.
     #
-    #   ds = Dictionary.new :v => 1, :a => "rsa-sha256",
-    #                               :c => "relaxed/relaxed", ...
+    #   ds = Dictionary.new v: 1, a: "rsa-sha256",
+    #                               c: "relaxed/relaxed", ...
     #
     def initialize hash = nil
       case hash
@@ -211,7 +211,7 @@ module Hermeneutics
   #
   # === Example
   #
-  #   content_disposition = Contents.new "form-data", :name => "mycontrol"
+  #   content_disposition = Contents.new "form-data", name: "mycontrol"
   #
   #   content_type = Contents.parse "text/html; boundary=0123456"
   #   content_type.caption       #=>  "text/html"
@@ -242,7 +242,7 @@ module Hermeneutics
 
     # Create a +Contents+ object from a value and a hash.
     #
-    #   c = Contents.new "text/html", :boundary => "0123456"
+    #   c = Contents.new "text/html", boundary: "0123456"
     #
     def initialize caption, hash = nil
       if caption =~ RES or caption =~ REA then
@@ -280,7 +280,7 @@ module Hermeneutics
     # E-Mail header field or from a value and a hash.
     #
     #   c = ContentType.parse "text/html; boundary=0123456"
-    #   c = ContentType.new "text/html", :boundary => "0123456"
+    #   c = ContentType.new "text/html", boundary: "0123456"
     #
     def initialize line, sf = nil
       line = line.join "/" if Array === line

@@ -106,7 +106,7 @@ module Hermeneutics
       #
       def check path
         if File.file? path then
-          File.open path, :encoding => Encoding::ASCII_8BIT do |f|
+          File.open path, encoding: Encoding::ASCII_8BIT do |f|
             f.size.zero? or f.readline =~ RE_F
           end
         end
@@ -171,7 +171,7 @@ module Hermeneutics
     #
     def deliver msg
       pos = nil
-      LockedFile.open @mailbox, "r+", :encoding => Encoding::ASCII_8BIT do |f|
+      LockedFile.open @mailbox, "r+", encoding: Encoding::ASCII_8BIT do |f|
         f.seek [ f.size - 4, 0].max
         last = ""
         f.read.each_line { |l| last = l }
@@ -192,7 +192,7 @@ module Hermeneutics
     # Iterate through <code>MBox</code>.
     #
     def each &block
-      File.open @mailbox, :encoding => Encoding::ASCII_8BIT do |f|
+      File.open @mailbox, encoding: Encoding::ASCII_8BIT do |f|
         m, e = nil, true
         s, t = t, f.tell
         f.each_line { |l|
@@ -290,7 +290,7 @@ module Hermeneutics
       d = Dir.new p
       d.each { |f|
         next if f.starts_with? "."
-        File.open f, :encoding => Encoding::ASCII_8BIT do |f|
+        File.open f, encoding: Encoding::ASCII_8BIT do |f|
           yield f
         end
       }

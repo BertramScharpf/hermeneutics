@@ -116,21 +116,14 @@ module Hermeneutics
     attr_accessor :keep_8bit
 
     # :call-seq:
-    #   new( keep_8bit = nil)       -> ent
-    #   new( :keep_8bit => val)     -> ent
+    #   new( keep_8bit: bool)     -> ent
     #
     # Creates an <code>Entities</code> converter.
     #
-    # The parameter may be given as one value or as a hash.
+    #   ent = Entities.new keep_8bit: true
     #
-    #   ent = Entities.new true
-    #   ent = Entities.new :keep_8bit => true
-    #
-    def initialize keep_8bit = nil
-      @keep_8bit = case keep_8bit
-        when Hash then keep_8bit[ :keep_8bit]
-        else           keep_8bit
-      end
+    def initialize keep_8bit: nil
+      @keep_8bit = keep_8bit
     end
 
     # :call-seq:
@@ -270,16 +263,14 @@ module Hermeneutics
     #
     # The parameters may be given as values or as a hash.
     #
-    #   utx = URLText.new :keep_8bit => true, :keep_space => false
+    #   utx = URLText.new keep_8bit: true, keep_space: false
     #
     # See the +encode+ method for an explanation of these parameters.
     #
-    def initialize hash = nil
-      if hash then
-        @keep_8bit  = hash[ :keep_8bit ]
-        @keep_space = hash[ :keep_space]
-        @mask_space = hash[ :mask_space]
-      end
+    def initialize keep_8bit: nil, keep_space: nil, mask_space: nil
+      @keep_8bit  = keep_8bit
+      @keep_space = keep_space
+      @mask_space = mask_space
     end
 
     # :call-seq:
@@ -294,7 +285,7 @@ module Hermeneutics
     # +keep_8bit+ is set.  The result will be in the same encoding as the
     # argument although this normally has no meaning.
     #
-    #   utx = URLText.new :keep_8bit => true
+    #   utx = URLText.new keep_8bit: true
     #   s = "< ä >".encode "UTF-8"
     #   utx.encode s                    #=> "%3C+\u{e4}+%3E"  in UTF-8
     #
@@ -304,7 +295,7 @@ module Hermeneutics
     # A space <code>" "</code> will not be replaced by a plus <code>"+"</code>
     # if +keep_space+ is set.
     #
-    #   utx = URLText.new :keep_space => true
+    #   utx = URLText.new keep_space: true
     #   s = "< x >"
     #   utx.encode s                    #=> "%3C x %3E"
     #
@@ -382,11 +373,11 @@ module Hermeneutics
     #
     #   utx = URLText.new
     #
-    #   h = { :name => "John Doe", :age => 42 }
+    #   h = { name: "John Doe", age: 42 }
     #   utx.encode_hash h
     #       #=> "name=John+Doe&age=42"
     #
-    #   h = { :a => ";;;", :x => "äöü" }
+    #   h = { a: ";;;", x: "äöü" }
     #   utx.encode_hash h
     #       #=> "a=%3B%3B%3B&x=%C3%A4%C3%B6%C3%BC"
     #
@@ -407,7 +398,7 @@ module Hermeneutics
     # Make an URL.
     #
     #   utx = URLText.new
-    #   h = { :name => "John Doe", :age => "42" }
+    #   h = { name: "John Doe", age: "42" }
     #   utx.encode_hash "myscript.rb", h, "chapter"
     #       #=> "myscript.rb?name=John+Doe&age=42#chapter"
     #
@@ -543,8 +534,8 @@ module Hermeneutics
     # == Examples
     #
     #   con = HeaderExt.new
-    #   con = HeaderExt.new :base64 => true, :limit => 32, :lower => true
-    #   con = HeaderExt.new :mask => /["'()]/
+    #   con = HeaderExt.new base64: true, limit: 32, lower: true
+    #   con = HeaderExt.new mask: /["'()]/
     #
     def initialize params = nil
       if params then
@@ -600,7 +591,7 @@ module Hermeneutics
     #   e.encode! "iso8859-15" ; con.encode e      #=> "=?ISO8859-15?Q?=A4?="
     #   e.encode! "ms-ansi"    ; con.encode e      #=> "=?MS-ANSI?Q?=80?="
     #
-    #   con = HeaderExt.new :mask => /["'()]/
+    #   con = HeaderExt.new mask: /["'()]/
     #   con.encode "'Stop!' said Fred."
     #     #=> "=?UTF-8?Q?=27Stop=21=27?= said Fred."
     #
@@ -698,7 +689,7 @@ module Hermeneutics
       # The standard header content encoding has a word break limit of 64.
       #
       def std
-        @std ||= new :limit => 64
+        @std ||= new limit: 64
       end
 
       # :call-seq:

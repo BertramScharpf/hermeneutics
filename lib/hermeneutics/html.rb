@@ -20,19 +20,19 @@ module Hermeneutics
   #         title { "Example" }
   #         comment "created as an example, #{Time.now}"
   #       }
-  #       body( :bgcolor => Hermeneutics::Color.from_s( "ffffef")) {
+  #       body bgcolor: Hermeneutics::Color.from_s( "ffffef") do
   #         h1 {
   #           pcdata "Ruby "
-  #           a( :href => "www.w3.org") { "Html" }
+  #           a href: "www.w3.org" do "Html" end
   #           _ { " example" }
   #         }
   #         p { "Some text.\nBye." }
   #         p {
   #           self << "link"
   #           br
-  #           a( :href => "www.w3.org") { "Html" }
+  #           a href: "www.w3.org" do "Html" end
   #         }
-  #       }
+  #       end
   #     }
   #   end
   # end

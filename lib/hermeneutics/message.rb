@@ -577,7 +577,7 @@ module Hermeneutics
         c = @headers.field :content_type
         u = @body.boundary
         if c[ :boundary] != u then
-          @headers.replace :content_type, c.fulltype, :boundary => u
+          @headers.replace :content_type, c.fulltype, boundary: u
         end
       end
       r << @headers.to_s << $/ << @body.to_s

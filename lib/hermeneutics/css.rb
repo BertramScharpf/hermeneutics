@@ -29,14 +29,14 @@ module Hermeneutics
   #       space
   #
   #       body "#dummy" do
-  #         properties :background_color => "f7f7f7".to_rgb
-  #         div ".child", :background_color => "e7e7e7".to_rgb
+  #         properties background_color: "f7f7f7".to_rgb
+  #         div ".child", background_color: "e7e7e7".to_rgb
   #         @b = selector
   #         td do
   #           @bt = selector
   #         end
   #       end
-  #       selectors @b, @bt, :fon_size => :large
+  #       selectors @b, @bt, font_size: :large
   #     end
   #   end
   #   Hermeneutics::Css.document
