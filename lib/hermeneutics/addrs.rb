@@ -110,6 +110,10 @@ module Hermeneutics
       end
     end
 
+    def =~ re
+      to_s =~ re
+    end
+
     def plain
       @plain ||= mk_plain
     end
