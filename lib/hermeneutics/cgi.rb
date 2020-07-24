@@ -70,11 +70,11 @@ module Hermeneutics
       document Html
     end
 
-    def parameters inp = nil, &block
+    def parameters &block
       if block_given? then
         case request_method
           when "GET", "HEAD" then parse_query query_string, &block
-          when "POST"        then parse_posted inp||$stdin, &block
+          when "POST"        then parse_posted &block
           else                    parse_input &block
         end
       else
@@ -107,8 +107,8 @@ module Hermeneutics
       URLText.decode_hash data, &block
     end
 
-    def parse_posted inp, &block
-      data = inp.read
+    def parse_posted &block
+      data = $stdin.read.force_encoding Encoding::ASCII_8BIT
       data.bytesize == content_length.to_i or
         @warn = "Content length #{content_length} is wrong (#{data.bytesize})."
       ct = ContentType.parse content_type
@@ -116,7 +116,7 @@ module Hermeneutics
         when "application/x-www-form-urlencoded" then
           parse_query data, &block
         when "multipart/form-data" then
-          mp = Multipart.parse data, ct.hash
+          mp = Multipart.parse data, **ct.hash
           parse_multipart mp, &block
         when "text/plain" then
           # Suppose this is for testing purposes only.
@@ -130,7 +130,7 @@ module Hermeneutics
       mp.each { |part|
         cd = part.headers.content_disposition
         if cd.caption == "form-data" then
-          yield cd.name, part.body, **cd.hash
+          yield cd.name, part.body_decoded, **cd.hash
         end
       }
     end

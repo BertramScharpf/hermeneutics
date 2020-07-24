@@ -130,7 +130,7 @@ module Hermeneutics
 
     class <<self
 
-      def parse input, parameters
+      def parse input, **parameters
         b = parameters[ :boundary]
         b or raise ParseError, "Missing boundary parameter."
         PartFile.open input, b do |partfile|
@@ -493,7 +493,7 @@ module Hermeneutics
 
       private :new
 
-      def parse input, parameters = nil
+      def parse input
         parse_hb input do |h,b|
           new h, b
         end
@@ -596,11 +596,10 @@ module Hermeneutics
         when "base64" then
           (@body.unpack "m").join
         else
-          @body.new_string
+          @body
       end
-      if (c = @headers.content_type) and (s = c[ :charset]) then
-        r.force_encoding s
-      end
+      c = @headers.content_type
+      r.force_encoding c&&c[ :charset] || Encoding::ASCII_8BIT
       r
     end
 
