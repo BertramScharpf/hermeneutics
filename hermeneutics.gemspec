@@ -41,7 +41,6 @@ Gem::Specification.new do |s|
                           hermesmail
                         )
 
-  s.has_rdoc          = true
   s.rdoc_options.concat %w(--charset utf-8 --main lib/hermeneutics/version.rb)
   s.extra_rdoc_files  = %w(
                           LICENSE
