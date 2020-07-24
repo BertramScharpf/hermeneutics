@@ -242,8 +242,8 @@ module Hermeneutics
     def single hash
       if block_given? then
         hash.map { |k,v|
-          if Symbol === k then k = k.new_string ; k.gsub! /_/, "-" end
-          if Array  === v then v = v.join " "                      end
+          if Symbol === k then k = k.to_s ; k.gsub! /_/, "-" end
+          if Array  === v then v = v.join " "                end
           yield "#{k}: #{v};"
         }
       else

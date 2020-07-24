@@ -65,7 +65,7 @@ module Hermeneutics
     MIME = /^multipart\//
 
     class IllegalBoundary < StandardError ; end
-    class ParseError < StandardError ; end
+    class ParseError      < StandardError ; end
 
     # :stopdoc:
     class PartFile

@@ -270,7 +270,7 @@ module Hermeneutics
       def mkattrs attrs
         attrs or return
         attrs.each { |k,v|
-          if Symbol === k then k = k.new_string ; k.gsub! /_/, "-" end
+          if Symbol === k then k = k.to_s ; k.gsub! /_/, "-" end
           v = case v
             when Array      then v.compact.join " "
             when true       then k.to_s if @assign_attributes
