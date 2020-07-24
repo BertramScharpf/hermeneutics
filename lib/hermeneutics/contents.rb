@@ -327,7 +327,7 @@ module Hermeneutics
 
     def parse_mime input
       m = Mime.find @caption
-      m and m.parse input, @hash
+      m and m.parse input, **@hash
     end
 
   end
