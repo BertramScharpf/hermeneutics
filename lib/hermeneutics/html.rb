@@ -52,9 +52,9 @@ module Hermeneutics
           yield i
         end
       end
-      def document *args, &block
+      def document *args, **kwargs, &block
         open do |i|
-          i.document *args, &block
+          i.document *args, **kwargs, &block
         end
       end
       def write_file name = nil
@@ -81,9 +81,9 @@ module Hermeneutics
       end
     end
 
-    def document *args, &block
+    def document *args, **kwargs, &block
       doctype_header
-      build *args, &block
+      build *args, **kwargs, &block
     end
 
     def doctype_header
