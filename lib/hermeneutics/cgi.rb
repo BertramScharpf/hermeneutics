@@ -2,6 +2,7 @@
 #  hermeneutics/cgi.rb  -- CGI responses
 #
 
+require "supplement"
 require "hermeneutics/escape"
 require "hermeneutics/message"
 require "hermeneutics/html"
@@ -36,6 +37,29 @@ module Hermeneutics
 
   end
 
+  class Text
+    CONTENT_TYPE = "text/plain"
+    attr_reader :cgi
+    def initialize cgi
+      @cgi = cgi
+    end
+    def generate out = nil
+      @out = out||$stdout
+      yield
+    ensure
+      @out = nil
+    end
+    def document *args, **kwargs, &block
+      build *args, **kwargs, &block
+    end
+    def build *args, **kwargs, &block
+    end
+    private
+    def p *args ; args.each { |a| @out << a } ; end
+    def l arg ; @out << arg ; arg.ends_with? $/ or @out << $/ ; end
+    def nl ; @out << $/ ; end
+  end
+
 
   # Example:
   #
@@ -65,27 +89,6 @@ module Hermeneutics
       end
     end
 
-    # Overwrite this.
-    def run
-      document Html
-    end
-
-    def parameters &block
-      if block_given? then
-        case request_method
-          when "GET", "HEAD" then parse_query query_string, &block
-          when "POST"        then parse_posted &block
-          else                    parse_input &block
-        end
-      else
-        p = {}
-        parameters do |k,v|
-          p[ k] = v
-        end
-        p
-      end
-    end
-
     CGIENV = %w(content document gateway http query
                           remote request script server unique)
 
@@ -101,67 +104,135 @@ module Hermeneutics
       ENV[ "HTTPS"].notempty?
     end
 
+    # Overwrite this.
+    #
+    # If you're reacting to POST uploads, please consider limiting
+    # the upload size.
+    #   Apache:   LimitRequestBody
+    #   Nginx:    client_max_body_size
+    #   Lighttpd: server.max-request-size
+    #
+    def run
+      document Html
+    end
+
+    def parameters &block
+      if block_given? then
+        data.parse &block
+      else
+        p = {}
+        parameters do |k,v|
+          p[ k] = v
+        end
+        p
+      end
+    end
+
+    def data
+      case request_method
+        when "GET", "HEAD" then
+          Data::UrlEnc.new query_string
+        when "POST"        then
+          data = $stdin.read
+          data.bytesize == content_length.to_i or
+            warn "Content length #{content_length} is wrong (#{data.bytesize})."
+          ct = ContentType.parse content_type
+          data.force_encoding ct[ :charset]||Encoding::ASCII_8BIT
+          case ct.fulltype
+            when "application/x-www-form-urlencoded" then
+              Data::UrlEnc.new data
+            when "multipart/form-data" then
+              Data::Multipart.new data, ct.hash
+            when "text/plain" then
+              Data::Plain.new data
+            when "application/json" then
+              Data::Json.new data
+            when "application/x-yaml", "application/yaml" then
+              Data::Yaml.new data
+            else
+              Data::UrlEnc.new data
+          end
+        else
+          Data::Lines.new read_interactive
+      end
+    end
+
+
     private
 
-    def parse_query data, &block
-      URLText.decode_hash data, &block
-    end
-
-    def parse_posted &block
-      data = $stdin.read.force_encoding Encoding::ASCII_8BIT
-      data.bytesize == content_length.to_i or
-        @warn = "Content length #{content_length} is wrong (#{data.bytesize})."
-      ct = ContentType.parse content_type
-      case ct.fulltype
-        when "application/x-www-form-urlencoded" then
-          parse_query data, &block
-        when "multipart/form-data" then
-          mp = Multipart.parse data, **ct.hash
-          parse_multipart mp, &block
-        when "text/plain" then
-          # Suppose this is for testing purposes only.
-          mk_params data.lines, &block
-        else
-          parse_query data, &block
+    module Data
+      class Plain
+        attr_reader :data
+        def initialize data
+          @data = data
+        end
+      end
+      class UrlEnc < Plain
+        def parse &block
+          URLText.decode_hash @data, &block
+        end
+      end
+      class Multipart < Plain
+        def initialize data, params
+          super data
+          @params = params
+        end
+        def parse
+          mp = Multipart.parse @data, **@params
+          mp.each { |part|
+            cd = part.headers.content_disposition
+            if cd.caption == "form-data" then
+              yield cd.name, part.body_decoded, **cd.hash
+            end
+          }
+        end
+      end
+      class Lines < Plain
+        def initialize lines
+          @lines = lines
+        end
+        def data ; @lines.join $/ ; end
+        def parse
+          @lines.each { |s|
+            k, v = s.split %r/=/
+            v ||= k
+            [k, v].each { |x| x.strip! }
+            yield k, v
+          }
+        end
+      end
+      class Json < Plain
+        def parse &block
+          require "json"
+          (JSON.load @data).each_pair &block
+        end
+      end
+      class Yaml < Plain
+        def parse &block
+          require "yaml"
+          (YAML.load @data).each_pair &block
+        end
       end
     end
 
-    def parse_multipart mp
-      mp.each { |part|
-        cd = part.headers.content_disposition
-        if cd.caption == "form-data" then
-          yield cd.name, part.body_decoded, **cd.hash
-        end
-      }
-    end
 
-    def mk_params l
-      l.each { |s|
-        k, v = s.split %r/=/
-        v ||= k
-        [k, v].each { |x| x.strip! }
-        yield k, v
-      }
-    end
-
-    def parse_input &block
+    def read_interactive
+      ENV[ "SCRIPT_NAME"] ||= $0
       if $*.any? then
-        l = $*
+        $*
       else
         if $stdin.tty? then
-          $stderr.puts <<~EOT
-            Offline mode: Enter name=value pairs on standard input.
-          EOT
-        end
-        l = []
-        while (a = $stdin.gets) and a !~ /^$/ do
-          l.push a
+          $stderr.puts "Offline mode: Enter name=value pairs on standard input."
+          l = []
+          while (a = $stdin.gets) and a !~ /^$/ do
+            l.push a
+          end
+          l
+        else
+          $stdin.read.split $/
         end
       end
-      ENV[ "SCRIPT_NAME"] = $0
-      mk_params l, &block
     end
-
 
     class Done < Exception
       attr_reader :result
@@ -237,6 +308,9 @@ module Hermeneutics
       else
         File.basename script_name
       end
+    end
+
+    def warn msg
     end
 
 
