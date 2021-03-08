@@ -247,9 +247,16 @@ module Hermeneutics
 end
 
 
-class Float
+class Integer
   def to_gray
     Hermeneutics::Color.gray self
+  end
+  alias to_grey to_gray
+end
+
+class Float
+  def to_gray
+    (0xff * self).to_i.to_gray
   end
   alias to_grey to_gray
 end
