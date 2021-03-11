@@ -75,9 +75,9 @@ module HermesDemo
         fn = field :submit, name: "mail", value: " send "
         input fn
       end
-      p <<-EOT
-To raise an error while page building, start the input field with the word
-'raise'.
+      p <<~EOT
+        To raise an error while page building, start the input field with the word
+        'raise'.
       EOT
       p "To ask Google, say 'google' as first word."
     end
@@ -142,11 +142,11 @@ To raise an error while page building, start the input field with the word
       m.headers.add :subject, "The Lizard-Spock Expansion"
       m.headers.add :date
       m.headers.add :content_type, "text/plain", charset: "utf-8"
-      m.body = <<-EOT
-Scissors cuts Paper, Paper covers Rock. Rock crushes Lizard,
-Lizard poisons Spock. Spock smashes Scissors, Scissors decapitates
-Lizard. Lizard eats Paper, Paper disproves Spock, Spock vaporizes
-Rock, and as it always has, Rock crushes Scissors.
+      m.body = <<~EOT
+        Scissors cuts Paper, Paper covers Rock. Rock crushes Lizard,
+        Lizard poisons Spock. Spock smashes Scissors, Scissors decapitates
+        Lizard. Lizard eats Paper, Paper disproves Spock, Spock vaporizes
+        Rock, and as it always has, Rock crushes Scissors.
       EOT
       m.send!
     end

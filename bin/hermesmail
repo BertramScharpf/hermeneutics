@@ -164,10 +164,10 @@ module Hermeneutics
     LICENSE   = Hermeneutics::LICENSE
     AUTHORS   = Hermeneutics::AUTHORS
 
-    DESCRIPTION = <<-EOT
-This mail delivery agent (MDA) reads a configuration file
-that is plain Ruby code. See the examples section for how
-to write one.
+    DESCRIPTION = <<~EOT
+      This mail delivery agent (MDA) reads a configuration file
+      that is plain Ruby code. See the examples section for how
+      to write one.
     EOT
 
     attr_accessor :rulesfile, :mbox, :fetchfile
