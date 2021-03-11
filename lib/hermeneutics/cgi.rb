@@ -21,13 +21,14 @@ module Hermeneutics
     end
 
     def form! **attrs, &block
-      attrs[ :action] = @cgi.fullpath attrs[ :action]
+      attrs[ :action] = @cgi.fullname attrs[ :action]
       form **attrs, &block
     end
 
     def href dest, params = nil, anchor = nil
       @utx ||= URLText.new
-      @utx.mkurl dest||(File.basename @cgi.scriptname), params, anchor
+      dest = @cgi.fullname dest
+      @utx.mkurl dest, params, anchor
     end
 
     def href! dest, params = nil, anchor = nil
@@ -310,15 +311,23 @@ module Hermeneutics
       done { |res| res.headers.add "Location", url }
     end
 
-    def fullpath dest
+    def fullname dest
       if dest then
-        unless File.absolute_path? dest then
-          dest =~ /\.\w+\z/ or dest = "#{dest}.rb"
-          dir = File.dirname script_name rescue ""
-          dest = File.join dir, dest
+        if dest =~ /\.\w+\z/ then
+          dest
+        else
+          "#{dest}.rb"
         end
       else
         script_name
+      end
+    end
+
+    def fullpath dest
+      dest = fullname dest
+      unless File.absolute_path? dest then
+        dir = File.dirname script_name rescue ""
+        dest = File.join dir, dest
       end
     end
 
