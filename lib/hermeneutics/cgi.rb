@@ -27,12 +27,12 @@ module Hermeneutics
 
     def href dest, params = nil, anchor = nil
       @utx ||= URLText.new
-      dest = @cgi.fullpath dest
-      @utx.mkurl dest, params, anchor
+      @utx.mkurl dest||(File.basename @cgi.scriptname), params, anchor
     end
 
-    def href! params = nil, anchor = nil
-      href nil, params, anchor
+    def href! dest, params = nil, anchor = nil
+      dest = @cgi.fullpath dest
+      href dest, params, anchor
     end
 
   end
@@ -304,7 +304,7 @@ module Hermeneutics
       end
       utx = URLText.new mask_space: true
       unless dest =~ %r{\A\w+://} then
-        dest = %Q'#{https? ? "https" : "http"}://#{http_host}#{fullpath dest}'
+        dest = %Q'#{https? ? "https" : "http"}://#{http_host||"localhost"}#{fullpath dest}'
       end
       url = utx.mkurl dest, params, anchor
       done { |res| res.headers.add "Location", url }
@@ -312,9 +312,13 @@ module Hermeneutics
 
     def fullpath dest
       if dest then
-        dest =~ %r{\A/} || dest =~ /\.\w+\z/ ? dest : dest + ".rb"
+        unless File.absolute_path? dest then
+          dest =~ /\.\w+\z/ or dest = "#{dest}.rb"
+          dir = File.dirname script_name rescue ""
+          dest = File.join dir, dest
+        end
       else
-        File.basename script_name
+        script_name
       end
     end
 

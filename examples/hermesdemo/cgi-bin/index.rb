@@ -85,7 +85,7 @@ module HermesDemo
     def data_link
       h3 "Data link"
       _ "This is a "
-      h = href! info: "INFO", further:"Hi, there!"
+      h = href nil, info: "INFO", further:"Hi, there!"
       a :href => h do "link with parameters" end
       _ " that cannot be modified by input fields."
     end
