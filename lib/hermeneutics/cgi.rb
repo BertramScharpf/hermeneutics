@@ -55,9 +55,17 @@ module Hermeneutics
     def build *args, **kwargs, &block
     end
     private
-    def p *args ; args.each { |a| @out << a } ; end
-    def l arg ; @out << arg ; arg.ends_with? $/ or @out << $/ ; end
-    def nl ; @out << $/ ; end
+    def p *args
+      args.each { |a| @out << a.to_s }
+    end
+    def l arg
+      arg = arg.to_s
+      @out << arg
+      arg.ends_with? $/ or @out << $/
+    end
+    def nl
+      @out << $/
+    end
   end
 
 
