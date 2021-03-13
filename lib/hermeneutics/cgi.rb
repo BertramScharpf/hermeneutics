@@ -266,10 +266,13 @@ module Hermeneutics
         run
       rescue
         done { |res|
-          res.body = "#$! (#{$!.class})#$/"
-          $@.each { |a| res.body << "\t" << a << $/ }
-          res.headers.add :content_type,
-                            "text/plain", charset: res.body.encoding
+          res.body = if $!.class.const_defined? :HTTP_STATUS then
+            res.headers.add :status, "%03d" % $!.class::HTTP_STATUS
+            $!.message + $/
+          else
+            $!.full_message highlight: false, order: :top
+          end
+          res.headers.add :content_type, "text/plain", charset: res.body.encoding
         }
       end
     rescue Done
