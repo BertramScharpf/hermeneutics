@@ -121,6 +121,10 @@ module Hermeneutics
         @out.path
       rescue NoMethodError
       end
+      def merge str
+        do_ind
+        @out << str
+      end
       def plain str
         do_ind
         @out << (@ent.encode str)
@@ -330,10 +334,14 @@ module Hermeneutics
       end
     end
 
+    def merge str
+      @generator.merge str
+      nil
+    end
+
     def pcdata *strs
       strs.each { |s|
-        s or next
-        @generator.plain s
+        @generator.plain s if s.notempty?
       }
       nil
     end
@@ -343,9 +351,13 @@ module Hermeneutics
       self
     end
 
-    def _ str = nil
-      @generator.plain str||yield
-      nil
+    def _ *strs
+      if strs.notempty? then
+        pcdata *strs
+      else
+        @generator.plain yield
+        nil
+      end
     end
 
     def comment str

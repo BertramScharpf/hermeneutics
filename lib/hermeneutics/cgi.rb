@@ -14,11 +14,7 @@ module Hermeneutics
 
     CONTENT_TYPE = "text/html"
 
-    attr_reader :cgi
-
-    def initialize cgi
-      @cgi = cgi
-    end
+    attr_accessor :cgi
 
     def form! **attrs, &block
       attrs[ :action] = @cgi.fullname attrs[ :action]
@@ -40,10 +36,7 @@ module Hermeneutics
 
   class Text
     CONTENT_TYPE = "text/plain"
-    attr_reader :cgi
-    def initialize cgi
-      @cgi = cgi
-    end
+    attr_accessor :cgi
     def generate out = nil
       @out = out||$stdout
       yield
@@ -283,7 +276,8 @@ module Hermeneutics
 
     def document cls = Html, *args, &block
       done { |res|
-        doc = cls.new self
+        doc = cls.new
+        doc.cgi = self
         res.body = ""
         doc.generate res.body do
           doc.document *args, &block
