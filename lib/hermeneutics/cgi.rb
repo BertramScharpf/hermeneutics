@@ -144,7 +144,7 @@ module Hermeneutics
             when "application/x-www-form-urlencoded" then
               Data::UrlEnc.new data
             when "multipart/form-data" then
-              Data::Multipart.new data, ct.hash
+              Data::Multiparted.new data, ct.hash
             when "text/plain" then
               Data::Plain.new data
             when "application/json" then
@@ -174,7 +174,7 @@ module Hermeneutics
           URLText.decode_hash @data, &block
         end
       end
-      class Multipart < Plain
+      class Multiparted < Plain
         def initialize data, params
           super data
           @params = params
