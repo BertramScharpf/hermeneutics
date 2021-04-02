@@ -118,9 +118,14 @@ module Hermeneutics
       document Html
     end
 
-    def parameters &block
+    def parameters nl: false, sym: false, strip: false
       if block_given? then
-        data.parse &block
+        data.parse do |k,v,**kw|
+          k = k.to_sym if sym
+          v.strip! if strip
+          v.gsub! "\r\n", "\n" if nl
+          yield k, v, **kw
+        end
       else
         p = {}
         parameters do |k,v|
