@@ -22,7 +22,7 @@ module Hermeneutics
     and CSS. Further, it is a CGI library.
   EOT
 
-  COPYRIGHT   = "(C) 2013-2020 Bertram Scharpf"
+  COPYRIGHT   = "(C) 2013-2021 Bertram Scharpf"
   LICENSE     = "BSD-2-Clause"
   AUTHORS     = [ "Bertram Scharpf"]
   MAIL        = "<software@bertram-scharpf.de>"
