@@ -386,11 +386,8 @@ module Hermeneutics
     end
 
     def form **attrs, &block
-      attrs[ :method] ||= if attrs[ :enctype] == "multipart/form-data" then
-        "post"
-      else
-        "get"
-      end
+      attrs[ :method] ||=
+              attrs[ :enctype] == "multipart/form-data" ? "post" : "get"
       method_missing :form, **attrs, &block
     end
 
