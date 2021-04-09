@@ -374,64 +374,29 @@ module Hermeneutics
       method_missing :html, **attrs do yield end
     end
 
-    def head attrs = nil
-      method_missing :head, attrs do
+    def head **attrs
+      method_missing :head, **attrs do
         meta charset: @generator.encoding
         yield
       end
     end
 
-    def form attrs, &block
+    def h i, **attrs, &block
+      method_missing :"h#{i.to_i}", **attrs, &block
+    end
+
+    def form **attrs, &block
       attrs[ :method] ||= if attrs[ :enctype] == "multipart/form-data" then
         "post"
       else
         "get"
       end
-      @tabindex = 0
-      method_missing :form, attrs, &block
-    ensure
-      @tabindex = nil
+      method_missing :form, **attrs, &block
     end
 
-    Field = Struct[ :type, :attrs]
-
-    def field type, attrs
+    def input **attrs, &block
       attrs[ :id] ||= attrs[ :name]
-      @tabindex += 1
-      attrs[ :tabindex] ||= @tabindex
-      Field[ type, attrs]
-    end
-
-    def label field = nil, attrs = nil, &block
-      if String === attrs then
-        label field do attrs end
-      else
-        if Field === field or attrs then
-          attrs = attrs.merge for: field.attrs[ :id]
-        else
-          attrs = field
-        end
-        method_missing :label, attrs, &block
-      end
-    end
-
-    def input arg, &block
-      if Field === arg then
-        case arg.type
-          when /select/i   then
-            method_missing :select, arg.attrs, &block
-          when /textarea/i then
-            block and
-              raise ArgumentError, "Field textarea: use the value attribute."
-            v = arg.attrs.delete :value
-            method_missing :textarea, arg.attrs do v end
-          else
-            arg.attrs[ :type] ||= arg.type
-            method_missing :input, arg.attrs, &block
-        end
-      else
-        method_missing :input, arg, &block
-      end
+      method_missing :input, **attrs, &block
     end
 
   end
@@ -445,8 +410,8 @@ module Hermeneutics
       super
     end
 
-    def a attrs = nil
-      attrs[ :name] ||= attrs[ :id] if attrs
+    def a **attrs
+      attrs[ :name] ||= attrs[ :id]
       super
     end
 

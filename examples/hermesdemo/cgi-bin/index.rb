@@ -64,16 +64,13 @@ module HermesDemo
     def simple_form
       h3 "Simple form"
       form! "simple", method: "POST", enctype: "multipart/form-data" do
-        ft = field :text,   name: "foo", size: 32, value: cgi.param[ :foo]
-        fs = field :submit, name: "bar", value: " submit this data "
-        label ft, "Enter some data: "
-        input ft
+        label for: "foo" do "Enter some data:" end
+        input type: :text, name: "foo", size: 32, value: cgi.param[ :foo]
         br
-        input fs
+        input type :submit, name: "bar", value: "submit this data"
         br
-        _ "To send a mail to the address entered, push here: "
-        fn = field :submit, name: "mail", value: " send "
-        input fn
+        _ "To send a mail to the address entered, push here:"
+        input type: :submit, name: "mail", value: "send"
       end
       p <<~EOT
         To raise an error while page building, start the input field with the word
