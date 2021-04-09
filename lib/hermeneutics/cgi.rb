@@ -118,6 +118,11 @@ module Hermeneutics
       document Html
     end
 
+    def parameters! nl: false, sym: false, strip: false
+      @parameters ||= parameters nl: nl, sym: sym, strip: strip
+      nil
+    end
+
     def parameters nl: false, sym: false, strip: false
       if block_given? then
         data.parse do |k,v,**kw|
@@ -128,7 +133,7 @@ module Hermeneutics
         end
       else
         p = {}
-        parameters do |k,v|
+        parameters nl: nl, sym: sym, strip: strip do |k,v|
           p[ k] = v
         end
         p
