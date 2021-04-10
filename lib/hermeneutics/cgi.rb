@@ -273,7 +273,8 @@ module Hermeneutics
             res.headers.add :status, "%03d" % $!.class::HTTP_STATUS
             $!.message + $/
           else
-            $!.full_message highlight: false, order: :top
+            # Why doesn't Ruby provide the encoding of #message?
+            ($!.full_message highlight: false, order: :top).force_encoding $!.message.encoding
           end
           res.headers.add :content_type, "text/plain", charset: res.body.encoding
         }
