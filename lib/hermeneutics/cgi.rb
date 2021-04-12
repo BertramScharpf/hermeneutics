@@ -129,7 +129,7 @@ module Hermeneutics
           k = k.to_sym if sym
           v.strip! if strip
           v.gsub! "\r\n", "\n" if nl
-          yield k, v, **kw
+          yield k, v.notempty?, **kw
         end
       else
         p = {}
