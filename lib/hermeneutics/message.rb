@@ -413,6 +413,8 @@ module Hermeneutics
         end
       end
 
+      private
+
       def method_missing sym, *args
         if args.empty? and not sym =~ /[!?=]\z/ then
           field sym, *args
@@ -420,6 +422,8 @@ module Hermeneutics
           super
         end
       end
+
+      public
 
       def add name, *contents
         e = build_entry name, *contents
@@ -544,6 +548,8 @@ module Hermeneutics
       @headers ||= Headers.create
     end
 
+    private
+
     def method_missing sym, *args, &block
       case sym
         when /h_(.*)/, /header_(.*)/ then
@@ -552,6 +558,8 @@ module Hermeneutics
           @headers.field sym, *args or super
       end
     end
+
+    public
 
     def [] name, type = nil
       @headers[ name, type]

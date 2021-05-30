@@ -123,6 +123,8 @@ module Hermeneutics
     def [] key ; @hash[ key.to_sym] ; end
     alias field []
 
+    private
+
     def method_missing sym, *args
       if sym =~ /[^a-z_]/ or args.any? then
         super
@@ -130,6 +132,8 @@ module Hermeneutics
         field sym
       end
     end
+
+    public
 
     # :call-seq:
     #   keys()       -> ary

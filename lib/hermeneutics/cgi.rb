@@ -94,6 +94,8 @@ module Hermeneutics
     CGIENV = %w(content document gateway http query
                           remote request script server unique)
 
+    private
+
     def method_missing sym, *args
       if args.empty? and CGIENV.include? sym[ /\A(\w+?)_\w+\z/, 1] then
         ENV[ sym.to_s.upcase]
@@ -101,6 +103,8 @@ module Hermeneutics
         super
       end
     end
+
+    public
 
     def https?
       ENV[ "HTTPS"].notempty?

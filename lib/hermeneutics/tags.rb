@@ -288,11 +288,15 @@ module Hermeneutics
       nil
     end
 
+    private
+
     def method_missing sym, *args
       (tag sym, *args) or super
     rescue
       super
     end
+
+    public
 
     def data
       d = ""

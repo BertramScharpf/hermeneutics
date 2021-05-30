@@ -347,6 +347,7 @@ module Hermeneutics
           else                                      val.to_s.notempty?
         end
       end
+      private
       def method_missing sym, *args
         if args.empty? and not sym =~ /[!?=]\z/ then
           self[ sym]

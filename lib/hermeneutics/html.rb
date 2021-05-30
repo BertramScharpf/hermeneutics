@@ -323,6 +323,8 @@ module Hermeneutics
       TAGS[ name]
     end
 
+    private
+
     def method_missing name, *args, &block
       t = tag? name
       t or super
@@ -333,6 +335,8 @@ module Hermeneutics
         @generator.tag name, t, *args, &block
       end
     end
+
+    public
 
     def merge str
       @generator.merge str

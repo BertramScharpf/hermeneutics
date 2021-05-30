@@ -182,6 +182,8 @@ module Hermeneutics
                               protected_instance_methods + instance_methods)
     undef_method *m
 
+    private
+
     def method_missing sym, *args, &block
       if Html::TAGS[ sym] then
         if args.any? and not Hash === args.first then
@@ -197,6 +199,8 @@ module Hermeneutics
         super
       end
     end
+
+    public
 
     def properties *args
       write @selector.to_s, *args
