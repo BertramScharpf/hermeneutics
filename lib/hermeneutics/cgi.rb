@@ -131,8 +131,10 @@ module Hermeneutics
       if block_given? then
         data.parse do |k,v,**kw|
           k = k.to_sym if sym
-          v.strip! if strip
-          v.gsub! "\r\n", "\n" if nl
+          if v then
+            v.strip! if strip
+            v.gsub! "\r\n", "\n" if nl
+          end
           yield k, v.notempty?, **kw
         end
       else
@@ -301,8 +303,14 @@ module Hermeneutics
         ct = if doc.respond_to?    :content_type then doc.content_type
         elsif   cls.const_defined? :CONTENT_TYPE then doc.class::CONTENT_TYPE
         end
-        ct and res.headers.add :content_type, ct,
-                    charset: res.body.encoding||Encoding.default_external
+        if ct then
+          cs = if doc.respond_to?    :charset then doc.charset
+          elsif   cls.const_defined? :CHARSET then doc.class::CHARSET
+          else
+            res.body.encoding||Encoding.default_external
+          end
+          res.headers.add :content_type, ct, charset: cs
+        end
         if doc.respond_to? :cookies then
           doc.cookies do |c|
             res.headers.add :set_cookie, c
