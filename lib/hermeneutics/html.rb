@@ -151,7 +151,7 @@ module Hermeneutics
               @out << tag
               mkattrs attrs
             end
-            if nls >3 then
+            if nls>3 then
               verbose_block yield
             else
               indent_if nls>2 do
