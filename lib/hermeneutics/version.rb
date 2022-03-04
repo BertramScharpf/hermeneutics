@@ -8,13 +8,12 @@
 #
 # = Overview
 #
-# This library provides classes for generating and parsing mail, HTML
-# and CSS. Further, it is a CGI library.
+# See the String constants SUMMARY and DESCRIPTION.
 #
 module Hermeneutics
 
   NAME        = "hermeneutics"
-  VERSION     = "1.11".freeze
+  VERSION     = "1.12".freeze
   SUMMARY     = "CGI and mail handling"
 
   DESCRIPTION = <<~EOT
@@ -22,7 +21,7 @@ module Hermeneutics
     and CSS. Further, it is a CGI library.
   EOT
 
-  COPYRIGHT   = "(C) 2013-2021 Bertram Scharpf"
+  COPYRIGHT   = "(C) 2013-2022 Bertram Scharpf"
   LICENSE     = "BSD-2-Clause"
   AUTHORS     = [ "Bertram Scharpf"]
   MAIL        = "<software@bertram-scharpf.de>"
