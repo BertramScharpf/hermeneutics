@@ -7,57 +7,6 @@ require "hermeneutics/contents"
 require "hermeneutics/addrs"
 
 
-class NilClass
-  def eat_lines
-  end
-  def rewind
-  end
-end
-class String
-  def eat_lines
-    @pos ||= 0
-    while @pos < length do
-      p = index /.*\n?/, @pos
-      l = $&.length
-      begin
-        yield self[ @pos, l]
-      ensure
-        @pos += l
-      end
-    end
-  end
-  def rewind
-    @pos = 0
-  end
-end
-class Array
-  def eat_lines &block
-    @pos ||= 0
-    while @pos < length do
-      begin
-        self[ @pos].eat_lines &block
-      ensure
-        @pos += 1
-      end
-    end
-  end
-  def rewind
-    each { |e| e.rewind }
-    @pos = 0
-  end
-end
-class IO
-  def eat_lines &block
-    each_line &block
-    nil
-  end
-  def to_s
-    rewind
-    read
-  end
-end
-
-
 module Hermeneutics
 
   class Multipart < Mime
@@ -67,65 +16,6 @@ module Hermeneutics
     class IllegalBoundary < StandardError ; end
     class ParseError      < StandardError ; end
 
-    # :stopdoc:
-    class PartFile
-      class <<self
-        def open file, sep
-          i = new file, sep
-          yield i
-        end
-        private :new
-      end
-      public
-      attr_reader :prolog, :epilog
-      def initialize file, sep
-        @file = file
-        @sep = /^--#{Regexp.quote sep}(--)?/
-        read_part
-        @prolog = norm_nl @a
-      end
-      def next_part
-        return if @epilog
-        read_part
-        @a.first.chomp!
-        true
-      end
-      def eat_lines
-        yield @a.pop while @a.any?
-      end
-      private
-      def read_part
-        @a = []
-        e = nil
-        @file.eat_lines { |l|
-          l =~ @sep rescue nil
-          if $& then
-            e = [ $'] if $1
-            @a.reverse!
-            return
-          end
-          @a.push l
-        }
-        raise ParseError, "Missing separator #@sep"
-      ensure
-        if e then
-          @file.eat_lines { |l| e.push l }
-          e.reverse!
-          @epilog = norm_nl e
-        end
-      end
-      def norm_nl a
-        r = ""
-        while a.any? do
-          l = a.pop
-          l.chomp! and l << "\n"
-          r << l
-        end
-        r
-      end
-    end
-    # :startdoc:
-
     public
 
     class <<self
@@ -133,14 +23,14 @@ module Hermeneutics
       def parse input, **parameters
         b = parameters[ :boundary]
         b or raise ParseError, "Missing boundary parameter."
-        PartFile.open input, b do |partfile|
-          list = []
-          while partfile.next_part do
-            m = Message.parse partfile
-            list.push m
-          end
-          new b, partfile.prolog, list, partfile.epilog
-        end
+        list = input.split /^--#{Regexp.quote b}/
+        prolog = list.shift
+        epilog = list.pop
+        epilog and epilog.slice! /\A--\n/ or raise "Missing last separator."
+        list.each { |p|
+          p.slice! /\A\n/ or raise "Malformed separator."
+        }
+        new b, prolog, list, epilog
       end
 
     end
@@ -181,10 +71,10 @@ module Hermeneutics
         s = p.to_s
         s =~ re rescue nil
         $& and raise IllegalBoundary
-        r << splitter << "\n" << s << "\n"
+        r << splitter << "\n" << s
       }
       @epilog =~ re and raise IllegalBoundary
-      r << splitter << "--" << @epilog
+      r << splitter << "--\n" << @epilog
     rescue IllegalBoundary
       boundary!
       retry
@@ -533,12 +423,13 @@ module Hermeneutics
       private
 
       def parse_hb input
-        h = parse_headers input
+        hinput, input = input.split /^\n/, 2
+        h = parse_headers hinput
         c = h.content_type
         b = c.parse_mime input if c
         unless b then
           b = ""
-          input.eat_lines { |l| b << l }
+          input.each_line { |l| b << l }
           b
         end
         yield h, b
@@ -546,7 +437,7 @@ module Hermeneutics
 
       def parse_headers input
         h = []
-        input.eat_lines { |l|
+        input.each_line { |l|
           l.chomp!
           case l
             when /^$/ then
@@ -612,6 +503,7 @@ module Hermeneutics
         end
       end
       r << @headers.to_s << "\n" << @body.to_s
+      r.ends_with? "\n" or r << "\n"
       r
     end
 

@@ -34,7 +34,6 @@ Gem::Specification.new do |s|
                           lib/hermeneutics/cgi.rb
                           lib/hermeneutics/boxes.rb
                           lib/hermeneutics/mail.rb
-                          lib/hermeneutics/transports.rb
                           lib/hermeneutics/cli/pop.rb
                         )
   s.executables       = %w(

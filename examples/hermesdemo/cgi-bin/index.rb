@@ -131,7 +131,7 @@ module HermesDemo
     def do_mail
       parameters[ :mail] or return
       @mailto = parameters[ :foo]
-      require "hermeneutics/transports"
+      require "hermeneutics/mail"
       require "socket"
       m = Hermeneutics::Mail.create
       m.headers.add :from, "webmaster@#{Socket.gethostname}"

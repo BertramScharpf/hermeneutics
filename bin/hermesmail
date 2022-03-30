@@ -11,7 +11,7 @@ rescue LoadError
 end
 
 require "hermeneutics/version"
-require "hermeneutics/transports"
+require "hermeneutics/mail"
 require "hermeneutics/cli/pop"
 
 

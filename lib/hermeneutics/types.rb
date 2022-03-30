@@ -59,9 +59,9 @@ module Hermeneutics
     @host = nil
     class <<self
       attr_writer :host
-      autoload :Socket, "socket"
       def host
-        @host ||= socket.gethostname
+        require "socket"
+        @host ||= Socket.gethostname
       end
       def parse str
         str =~ /<(.*?)>/

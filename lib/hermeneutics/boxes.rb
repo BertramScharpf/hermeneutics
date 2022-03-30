@@ -18,7 +18,6 @@ Hermeneutics::Maildir is the maildir format.
 
 
 require "supplement"
-require "supplement/locked"
 require "date"
 
 
@@ -90,6 +89,15 @@ module Hermeneutics
       self.class.check @mailbox
     end
 
+    # :call-seq:
+    #   mbox.each { |mail| ... }    -> nil
+    #
+    # Iterate through <code>MBox</code>.
+    # Alias for <code>MBox#each_mail</code>.
+    #
+    def each &block ; each_mail &block ; end
+    include Enumerable
+
   end
 
   class MBox < Box
@@ -114,44 +122,6 @@ module Hermeneutics
 
     end
 
-    # :stopdoc:
-    class Region
-      class <<self
-        private :new
-        def open file, start, stop
-          t = file.tell
-          begin
-            i = new file, start, stop
-            yield i
-          ensure
-            file.seek t
-          end
-        end
-      end
-      def initialize file, start, stop
-        @file, @start, @stop = file, start, stop
-        rewind
-      end
-      def rewind ; @file.seek @start ; end
-      def read n = nil
-        m = @stop - @file.tell
-        n = m if not n or n > m
-        @file.read n
-      end
-      def to_s
-        rewind
-        read
-      end
-      def each_line
-        @file.each_line { |l|
-          break if @file.tell > @stop
-          yield l
-        }
-      end
-      alias eat_lines each_line
-    end
-    # :startdoc:
-
     # :call-seq:
     #   mbox.create     -> self
     #
@@ -165,64 +135,75 @@ module Hermeneutics
     end
 
     # :call-seq:
-    #   mbox.deliver( msg)     -> nil
+    #   mbox.store( msg)     -> nil
     #
-    # Store the mail into the local <code>MBox</code>.
+    # Store the mail to the local <code>MBox</code>.
     #
-    def deliver msg
-      pos = nil
-      LockedFile.open @mailbox, "r+", encoding: Encoding::ASCII_8BIT do |f|
-        f.seek [ f.size - 4, 0].max
-        last = ""
-        f.read.each_line { |l| last = l }
-        f.puts unless last =~ RE_N
-        pos = f.size
-        m = msg.to_s
-        i = 1
-        while (i = m.index RE_F, i rescue nil) do m.insert i, ">" end
-        f.write m
-        f.puts
-      end
-      pos
+    def store msg
+      store_raw msg.to_s, msg.from, msg.created
     end
 
     # :call-seq:
-    #   mbox.each { |mail| ... }    -> nil
+    #   mbox.store_raw( text, from, created)     -> nil
+    #
+    # Store some text that appears like a mail to the local <code>MBox</code>.
+    #
+    def store_raw text, from, created
+      File.open @mailbox, "r+", encoding: Encoding::ASCII_8BIT do |f|
+        f.seek [ f.size - 4, 0].max
+        last = nil
+        f.read.each_line { |l| last = l }
+        f.puts if last and not last =~ RE_N
+
+        f.puts "From #{from.gsub ' ', '_'} #{created.to_time.gmtime.asctime}"
+        text.each_line { |l|
+          l.chomp!
+          print ">" if l =~ RE_F
+          f.puts l
+        }
+        f.puts
+      end
+      nil
+    end
+
+    # :call-seq:
+    #   mbox.each_mail { |mail| ... }    -> nil
     #
     # Iterate through <code>MBox</code>.
     #
-    def each &block
+    def each_mail
       File.open @mailbox, encoding: Encoding::ASCII_8BIT do |f|
-        m, e = nil, true
-        s, t = t, f.tell
+        nl_seen = false
+        from, created, text = nil, nil, nil
         f.each_line { |l|
-          s, t = t, f.tell
-          if is_from_line? l and e then
+          l.chomp!
+          if l =~ RE_F then
+            l = $'
+            yield text, from, created if text
+            length_tried = false
+            from, created = l.split nil, 2
             begin
-              m and Region.open f, m, e, &block
-            ensure
-              m, e = s, nil
+              created = DateTime.parse created
+            rescue Date::Error
+              unless length_tried then
+                from = $'
+                created = from.slice! from.length-Time.now.ctime.length, from.length
+                from.strip!
+                length_tried = true
+                retry
+              end
+              raise "#@mailbox does not seem to be a mailbox: From line '#{l}'."
             end
+            text, nl_seen = "", false
           else
-            m or raise "#@mailbox does not seem to be a mailbox."
-            e = l =~ RE_N && s
+            from or raise "#@mailbox does not seem to be a mailbox. No 'From' line."
+            text << "\n" if nl_seen
+            nl_seen = l =~ RE_N
+            nl_seen or text << l << "\n"
           end
         }
-        # Treat it gracefully when there is no empty last line.
-        e ||= f.tell
-        m and Region.open f, m, e, &block
+        yield text, from, created
       end
-    end
-    include Enumerable
-
-    private
-
-    def is_from_line? l
-      l =~ RE_F or return
-      addr, time = $'.split nil, 2
-      DateTime.parse time
-      addr =~ /@/
-    rescue ArgumentError, TypeError
     end
 
   end
@@ -266,53 +247,86 @@ module Hermeneutics
     end
 
     # :call-seq:
-    #   maildir.deliver( msg)     -> nil
+    #   maildir.store( msg)     -> nil
     #
     # Store the mail into the local <code>Maildir</code>.
     #
-    def deliver msg
-      tmp = mkfilename TMP
-      File.open tmp, "w" do |f|
-        f.write msg
+    def store msg
+      begin
+        filename = mkfilename msg.from, msg.created
+        tpath = File.join @mailbox, TMP, filename
+        File.open tpath, File::CREAT|File::EXCL|File::WRONLY do |f| f.puts msg.to_s end
+      rescue Errno::EEXIST
+        retry
       end
-      new = mkfilename NEW
-      File.rename tmp, new
-      new
+      begin
+        cpath = File.join @mailbox, NEW, filename
+        File.link tpath, cpath
+      rescue Errno::EEXIST
+        filename = mkfilename msg.from, msg.created
+        retry
+      end
+      File.unlink tpath
+      nil
+    end
+
+    # :call-seq:
+    #   mbox.each_file { |filename| ... }    -> nil
+    #
+    # Iterate through <code>Maildir</code>.
+    #
+    def each_file new = nil
+      p = File.join @mailbox, new ? NEW : CUR
+      (Dir.new p).sort.each { |fn|
+        next if fn.starts_with? "."
+        path = File.join p, fn
+        yield path
+      }
     end
 
     # :call-seq:
     #   mbox.each { |mail| ... }    -> nil
     #
-    # Iterate through <code>MBox</code>.
+    # Iterate through <code>Maildir</code>.
     #
-    def each
-      p = File.join @mailbox, CUR
-      d = Dir.new p
-      d.each { |f|
-        next if f.starts_with? "."
-        File.open f, encoding: Encoding::ASCII_8BIT do |f|
-          yield f
+    def each_mail new = nil
+      lfrom = local_from
+      each_file new do |fn|
+        created = Time.at fn[ /\A(\d+)/, 1].to_i + fn[ /M(\d+)/, 1].to_i*0.000001
+        File.open fn, encoding: Encoding::ASCII_8BIT do |f|
+          from_host = fn[ /\.([.a-z0-9_+-]+)/, 1]
+          text = f.read
+          from = text[ /[a-z0-9.+-]+@#{Regexp.quote from_host}/]
+          yield text, from||lfrom, created
         end
-      }
+      end
     end
-    include Enumerable
 
     private
 
-    autoload :Socket, "socket"
+    @seq = 0
+    class <<self
+      def seq! ; @seq += 1 ; end
+    end
 
-    def mkfilename d
-      dir = File.join @mailbox, d
-      c = 0
-      begin
-        n = "%.4f.%d_%d.%s" % [ Time.now.to_f, $$, c, Socket.gethostname]
-        path = File.join dir, n
-        File.open path, File::CREAT|File::EXCL do |f| end
-        path
-      rescue Errno::EEXIST
-        c += 1
-        retry
+    def mkfilename from, created
+      host = if from =~ /@/ then
+        $'
+      else
+        require "socket"
+        Socket.gethostname
       end
+      created ||= Time.now
+      created = created.to_time
+      "#{created.to_i}M#{created.usec}P#$$Q#{self.class.seq!}.#{host}"
+      "Q#{'%05d' % self.class.seq!}.#{host}"
+    end
+
+    def local_from
+      require "etc"
+      require "socket"
+      s = File.stat @mailbox
+      lfrom = "#{(Etc.getpwuid s.uid).name}@#{Socket.gethostname}"
     end
 
   end
