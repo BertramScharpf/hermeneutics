@@ -209,110 +209,131 @@ module Hermeneutics
 
     class ParseError < StandardError ; end
 
-    class Headers
+    class Header
 
-      class Entry
-        LINE_LENGTH = 78
-        INDENT = "    "
-        class <<self
-          private :new
-          def parse str
-            str =~ /:\s*/ or
-              raise ParseError, "Header line without a colon: #{str}"
-            data = $'
-            new $`, $&, data
+      @line_max = 78
+      @indent   = 4
+      @colspc   = 1
+
+      class <<self
+
+        attr_accessor :line_max, :indent, :colspc
+
+        private :new
+
+        def parse str
+          str =~ /:\s*/ or
+            raise ParseError, "Header line without a colon: #{str}"
+          data = $'
+          new $`, $&, data
+        end
+
+        def create name, *contents
+          name = build_name name
+          i = new name.to_s, ":"+" "*@colspc, nil
+          i.set *contents
+        end
+
+        def build_name name
+          n = name.to_s
+          unless n.equal? name then
+            n.gsub! /_/, "-"
+            n.gsub! /\b[a-z]/ do |c| c.upcase end
           end
-          def create name, *contents
-            name = build_name name
-            i = new name.to_s, ": ", nil
-            i.set *contents
+          n
+        end
+
+      end
+
+      attr_reader :name, :data
+
+      def initialize name, sep, data
+        @name, @sep, @data, @contents = name, sep, data
+      end
+
+      def to_s
+        "#@name#@sep#@data"
+      end
+
+      def contents type
+        if type then
+          unless @contents and @contents.is_a? type then
+            @contents = type.parse @data
           end
-          def build_name name
-            n = name.to_s
-            unless n.equal? name then
-              n.gsub! /_/, "-"
-              n.gsub! /\b[a-z]/ do |c| c.upcase end
-            end
-            n
-          end
-        end
-        attr_reader :name, :sep, :data
-        def initialize name, sep, data
-          @name, @sep, @data, @contents = name, sep, data
-        end
-        def to_s
-          "#@name#@sep#@data"
-        end
-        def contents type
-          if type then
-            unless @contents and @contents.is_a? type then
-              @contents = type.parse @data
-            end
-            @contents
-          else
-            @data
-          end
-        end
-        def name_is? name
-          (@name.casecmp name).zero?
-        end
-        def set *contents
-          type, *args = *contents
-          d = case type
-            when Class then
-              @contents = type.new *args
-              case (e = @contents.encode)
-                when Array then e
-                when nil   then []
-                else            [ e]
-              end
-            when nil then
-              @contents = nil
-              split_args args
-            else
-              @contents = nil
-              split_args contents
-          end
-          @data = mk_lines d
-          self
-        end
-        def reset type
-          if type then
-            c = contents type
-            @data = mk_lines c.encode if c
-          end
-          self
-        end
-        private
-        def mk_lines strs
-          m = LINE_LENGTH - @name.length - @sep.length
-          data = ""
-          strs.each { |e|
-            unless data.empty? then
-              if 1 + e.length <= m then
-                data << " "
-                m -= 1
-              else
-                data << "\n" << INDENT
-                m = LINE_LENGTH - INDENT.length
-              end
-            end
-            data << e
-            m -= e.length
-          }
-          data
-        end
-        def split_args ary
-          r = []
-          ary.each { |a|
-            r.concat case a
-              when Array then split_args a
-              else            a.to_s.split
-            end
-          }
-          r
+          @contents
+        else
+          @data
         end
       end
+
+      def name_is? name
+        (@name.casecmp name).zero?
+      end
+
+      def set *contents
+        type, *args = *contents
+        d = case type
+          when Class then
+            @contents = type.new *args
+            case (e = @contents.encode)
+              when Array then e
+              when nil   then []
+              else            [ e]
+            end
+          when nil then
+            @contents = nil
+            split_args args
+          else
+            @contents = nil
+            split_args contents
+        end
+        @data = mk_lines d
+        self
+      end
+
+      def reset type
+        if type then
+          c = contents type
+          @data = mk_lines c.encode if c
+        end
+        self
+      end
+
+      private
+
+      def mk_lines strs
+        m = self.class.line_max - @name.length - @sep.length
+        data = ""
+        strs.each { |e|
+          unless data.empty? then
+            if 1 + e.length <= m then
+              data << " "
+              m -= 1
+            else
+              data << "\n" << (" "*self.class.indent)
+              m = self.class.line_max - self.class.indent
+            end
+          end
+          data << e
+          m -= e.length
+        }
+        data
+      end
+
+      def split_args ary
+        r = []
+        ary.each { |a|
+          r.concat case a
+            when Array then split_args a
+            else            a.to_s.split
+          end
+        }
+        r
+      end
+
+    end
+
+    class Headers
 
       @types = {
         "Content-Type"        => ContentType,
@@ -345,7 +366,7 @@ module Hermeneutics
 
       class <<self
         def set_field_type name, type
-          e = Entry.create name
+          e = Header.create name
           if type then
             @types[ e.name] = type
           else
@@ -364,7 +385,7 @@ module Hermeneutics
         private :new
         def parse *list
           list.flatten!
-          list.map! { |h| Entry.parse h }
+          list.map! { |h| Header.parse h }
           new list
         end
         def create
@@ -425,28 +446,34 @@ module Hermeneutics
 
       public
 
-      def add name, *contents
+      def insert name, *contents
         e = build_entry name, *contents
-        add_entry e
+        @list.unshift e
         self
       end
 
-      def replace name, *contents
+      def add name, *contents
         e = build_entry name, *contents
-        remove_entries e
-        add_entry e
+        @list.push e
         self
       end
 
       def remove name
-        e = Entry.create name
+        e = Header.create name
         remove_entries e
         self
       end
       alias delete remove
 
+      def replace name, *contents
+        e = build_entry name, *contents
+        remove_entries e
+        @list.push e
+        self
+      end
+
       def recode name, type = nil
-        n = Entry.build_name name
+        n = Header.build_name name
         @list.each { |e|
           next unless e.name_is? n
           type ||= Headers.find_type e
@@ -466,12 +493,12 @@ module Hermeneutics
       private
 
       def find_entry name
-        e = Entry.build_name name
+        e = Header.build_name name
         @list.find { |x| x.name_is? e }
       end
 
       def build_entry name, *contents
-        e = Entry.create name
+        e = Header.create name
         type, = *contents
         case type
           when Class then
@@ -481,10 +508,6 @@ module Hermeneutics
             e.set type, *contents
         end
         e
-      end
-
-      def add_entry entry
-        @list.unshift entry
       end
 
       def remove_entries entry
