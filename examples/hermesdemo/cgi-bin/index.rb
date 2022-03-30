@@ -49,7 +49,7 @@ module HermesDemo
       h3 "Previously sumbitted parameters"
       pre {
         cgi.parameters.each { |k,v|
-          _ "#{k} = #{v.inspect}" << $/
+          _ "#{k} = #{v.inspect}\n"
         }
         _ "(none)" if cgi.parameters.empty?
       }
@@ -99,13 +99,13 @@ module HermesDemo
     def show_environment
       h3 "Called"
       pre {
-        _ "wd = #{Dir.getwd}#$/"
-        _ "$0 = #$0#$/"
-        _ "$* = #{$*.inspect}#$/"
+        _ "wd = #{Dir.getwd}\n"
+        _ "$0 = #$0\n"
+        _ "$* = #{$*.inspect}\n"
       }
       h2 "Environment"
       pre {
-        ENV.sort.each { |k,v| _ "#{k} = #{v}#$/" }
+        ENV.sort.each { |k,v| _ "#{k} = #{v}\n" }
       }
     end
 

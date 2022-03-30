@@ -175,7 +175,7 @@ module Hermeneutics
         f.seek [ f.size - 4, 0].max
         last = ""
         f.read.each_line { |l| last = l }
-        f.puts unless last =~ /^$/
+        f.puts unless last =~ RE_N
         pos = f.size
         m = msg.to_s
         i = 1

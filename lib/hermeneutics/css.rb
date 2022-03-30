@@ -26,7 +26,7 @@ module Hermeneutics
   #       a ":visited", ATTR_COL2, ATTR_DECON
   #       a ":active", ATTR_COL1, ATTR_DECON
   #       a ":focus",  ATTR_COL1, ATTR_DECOU
-  #       space
+  #       skip
   #
   #       body "#dummy" do
   #         properties background_color: "f7f7f7".to_rgb
@@ -145,22 +145,22 @@ module Hermeneutics
     def comment str
       @out << "/*"
       str = mask_comment str
-      ml = str =~ %r(#$/)
+      ml = str =~ %r(\n)
       if ml then
-        @out << $/
+        @out << "\n"
         str.each_line { |l|
           l.chomp!
-          @out << " * " << l << $/
+          @out << " * " << l << "\n"
         }
       else
         @out << " " << str
       end
       @out << " */"
-      ml and @out << $/
+      ml and @out << "\n"
     end
 
-    def space
-      @out << $/
+    def skip
+      @out << "\n"
     end
 
     def tag *args
@@ -232,15 +232,15 @@ module Hermeneutics
       args.each { |a| p.update a }
       @out << sel << " {"
       nl, ind = if p.size > 1 then
-        @out << $/
-        [ $/, INDENT]
+        @out << "\n"
+        [ "\n", INDENT]
       else
         [ " ", " "]
       end
       single p do |s|
         @out << ind << s << nl
       end
-      @out << "}" << $/
+      @out << "}" << "\n"
     end
 
     def single hash

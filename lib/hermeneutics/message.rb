@@ -118,7 +118,7 @@ module Hermeneutics
         r = ""
         while a.any? do
           l = a.pop
-          l.chomp! and l << $/
+          l.chomp! and l << "\n"
           r << l
         end
         r
@@ -181,7 +181,7 @@ module Hermeneutics
         s = p.to_s
         s =~ re rescue nil
         $& and raise IllegalBoundary
-        r << splitter << $/ << s << $/
+        r << splitter << "\n" << s << "\n"
       }
       @epilog =~ re and raise IllegalBoundary
       r << splitter << "--" << @epilog
@@ -293,7 +293,7 @@ module Hermeneutics
                 data << " "
                 m -= 1
               else
-                data << $/ << INDENT
+                data << "\n" << INDENT
                 m = LINE_LENGTH - INDENT.length
               end
             end
@@ -382,7 +382,7 @@ module Hermeneutics
       alias size length
 
       def to_s
-        @list.map { |e| "#{e}#$/" }.join
+        @list.map { |e| "#{e}\n" }.join
       end
 
       def each
@@ -531,7 +531,7 @@ module Hermeneutics
             when /^\s+/ then
               h.last or
                 raise ParseError, "First line may not be a continuation."
-              h.last << $/ << l
+              h.last << "\n" << l
             else
               h.push l
           end
@@ -588,7 +588,7 @@ module Hermeneutics
           @headers.replace :content_type, c.fulltype, boundary: u
         end
       end
-      r << @headers.to_s << $/ << @body.to_s
+      r << @headers.to_s << "\n" << @body.to_s
       r
     end
 

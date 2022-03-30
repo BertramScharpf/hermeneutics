@@ -67,8 +67,8 @@ module Hermeneutics
     def to_s
       set_unix_from
       r = ""
-      r << @from << $/ << super
-      r.ends_with? $/ or r << $/
+      r << @from << "\n" << super
+      r.ends_with? "\n" or r << "\n"
       r
     end
 

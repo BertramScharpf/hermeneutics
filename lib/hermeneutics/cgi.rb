@@ -55,10 +55,10 @@ module Hermeneutics
     def l arg
       arg = arg.to_s
       @out << arg
-      arg.ends_with? $/ or @out << $/
+      arg.ends_with? "\n" or @out << "\n"
     end
     def nl
-      @out << $/
+      @out << "\n"
     end
   end
 
@@ -209,7 +209,7 @@ module Hermeneutics
         def initialize lines
           @lines = lines
         end
-        def data ; @lines.join $/ ; end
+        def data ; @lines.join "\n" ; end
         def parse
           @lines.each { |s|
             k, v = s.split %r/=/
@@ -241,13 +241,23 @@ module Hermeneutics
       else
         if $stdin.tty? then
           $stderr.puts "Offline mode: Enter name=value pairs on standard input."
+          $stderr.puts "A blank line finishes."
           l = []
-          while (a = $stdin.gets) and a !~ /^$/ do
+          while (a = $stdin.gets) do
+            a.chomp!
+            break unless a.notempty?
             l.push a
           end
           l
         else
-          $stdin.read.split $/
+          l = []
+          $stdin.read.each_line { |a|
+            a.chomp!
+            next unless a.notempty?
+            next if a =~ /^#/
+            l.push a
+          }
+          l
         end
       end
     end
@@ -277,7 +287,7 @@ module Hermeneutics
         done { |res|
           res.body = if $!.class.const_defined? :HTTP_STATUS then
             res.headers.add :status, "%03d" % $!.class::HTTP_STATUS
-            $!.message + $/
+            $!.message + "\n"
           else
             # Why doesn't Ruby provide the encoding of #message?
             ($!.full_message highlight: false, order: :top).force_encoding $!.message.encoding

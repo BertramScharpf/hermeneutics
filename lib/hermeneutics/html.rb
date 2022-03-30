@@ -213,9 +213,9 @@ module Hermeneutics
           @out << "/* "
           brace false do
             @out << "![CDATA["
-            @out << " */" << $/
+            @out << " */\n"
             @out << str
-            @out << $/ << "/* "
+            @out << "\n/* "
             @out << "]]"
           end
           @out << " */"
@@ -227,7 +227,7 @@ module Hermeneutics
       def brk
         unless @nl then
           @nl = true
-          @out << $/
+          @out << "\n"
         end
       end
       def out_brk str
