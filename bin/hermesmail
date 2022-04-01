@@ -156,6 +156,7 @@ module Hermeneutics
           @user, @password, @pop = user, password, pop
           @pop.authenticate @user, @password
           yield
+          @pop.quit
         end
       ensure
         @user, @password, @pop = nil, nil, nil
@@ -178,8 +179,7 @@ module Hermeneutics
           text = @pop.retr k
           begin
             yield text
-            raise "NOCH IN ENTWICKLUNG!"
-            dele k
+            @pop.dele k
           rescue Keep
           end
         }
