@@ -50,44 +50,25 @@ module Hermeneutics
     alias forward forward_smtp
 
 
-    self.logfile  = "hermesmail.log"
-    self.loglevel = :ERR
-
     @failed_process = "=failed-process"
+    @failed_parse   = "=failed-parse"
 
     class <<self
-      attr_accessor :failed_process
+      attr_accessor :failed_process, :failed_parse
       def process input, debug = false
         i = parse input
         i.debug = debug
         i.execute
       rescue
         raise if debug
-        open_failed { |f|
-          log_exception "Error while parsing mail", f.path
-          f.write input
-        }
+        log_exception "Error while parsing mail"
+        b = box @failed_parse
+        log :INF, "Saving to", b.path
+        b.store_raw input, nil, nil
       end
       def log_exception msg, *args
         log :ERR, "#{msg}: #$! (#{$!.class})", *args
         $!.backtrace.each { |b| log :INF, "    #{b}" }
-      end
-      private
-      def open_failed
-        i = 0
-        d = expand_sysdir
-        w = Time.now.strftime "%Y%m%d%H%M%S"
-        begin
-          p = File.join d, "failed-#{w}-%05d" % i
-          File.open p, File::CREAT|File::EXCL|File::WRONLY do |f|
-            yield f
-          end
-        rescue Errno::ENOENT
-          Dir.mkdir! d and retry
-        rescue Errno::EEXIST
-          i +=1
-          retry
-        end
       end
     end
 
@@ -98,12 +79,12 @@ module Hermeneutics
     rescue
       raise if @debug
       log_exception "Error while processing mail"
-      b = cls.box cls.failed_process
+      b = self.class.box self.class.failed_process
       save b
     end
 
     def log_exception msg, *args
-      cls.log_exception msg, *args
+      self.class.log_exception msg, *args
     end
 
   end

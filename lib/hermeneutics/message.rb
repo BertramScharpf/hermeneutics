@@ -30,6 +30,7 @@ module Hermeneutics
         list.each { |p|
           p.slice! /\A\n/ or raise "Malformed separator."
         }
+        list.map! { |t| Message.parse t }
         new b, prolog, list, epilog
       end
 
@@ -54,7 +55,7 @@ module Hermeneutics
 
     def inspect
       r = ""
-      r << "#<#{cls}:"
+      r << "#<#{self.class}:"
       r << "0x%x" % (object_id<<1)
       r << " n=#{@list.length}"
       r << ">"
@@ -305,6 +306,11 @@ module Hermeneutics
         self
       end
 
+      def has? name
+        e = find_entry name
+        not e.nil?
+      end
+
       def raw name
         e = find_entry name
         e.data if e
@@ -374,7 +380,7 @@ module Hermeneutics
 
       def inspect
         r = ""
-        r << "#<#{cls}:"
+        r << "#<#{self.class}:"
         r << "0x%x" % (object_id<<1)
         r << " (#{length})"
         r << ">"
@@ -475,6 +481,11 @@ module Hermeneutics
 
     public
 
+    def has? name
+      @headers.has? name
+    end
+    alias has_header? has?
+
     def [] name, type = nil
       @headers[ name, type]
     end
@@ -486,7 +497,7 @@ module Hermeneutics
 
     def inspect
       r = ""
-      r << "#<#{cls}:"
+      r << "#<#{self.class}:"
       r << "0x%x" % (object_id<<1)
       r << " headers:#{@headers.length}"
       r << " multipart" if is_multipart?

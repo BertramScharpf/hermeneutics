@@ -2,13 +2,16 @@
 #  hermesmail-rules-test  --  Example Hermeneutics rulefile
 #
 
-self.spooldir  = "/var/mail"
-self.spoolfile = "#{etc.getlogin}__"
-self.maildir   = "Mail__"
-self.default_format = MBox
+require "etc"
 
-self.logfile  = ".log/logfile"
-self.loglevel = :INF
+LOGFILE  = "log/hermes.log"
+LOGLEVEL = :INF
+
+MAILDIR   = "Mail__"
+SPOOLDIR  = "/var/mail"
+SPOOLFILE = "#{Etc.getlogin}__"
+Box.default_format = MBox
+
 
 B_SPAM_WEBDE = box "=spam-webde"
 

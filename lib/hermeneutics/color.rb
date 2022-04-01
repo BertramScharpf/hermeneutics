@@ -96,7 +96,7 @@ module Hermeneutics
     #
     def to_s ; "#" + tuple.map { |x| "%02x" % x }.join ; end
 
-    def inspect ; "#<#{cls}:#{'0x%08x' % (object_id << 1)} #{to_s}>" ; end
+    def inspect ; "#<#{self.class}:#{'0x%08x' % (object_id << 1)} #{to_s}>" ; end
 
     class <<self
 

@@ -30,6 +30,8 @@ module Hermeneutics
 
     class <<self
 
+      attr_accessor :default_format
+
       # :call-seq:
       #   Box.find( path, default = nil)          -> box
       #
@@ -39,6 +41,7 @@ module Hermeneutics
       def find path, default_format = nil
         b = @boxes.find { |b| b.check path }
         b ||= default_format
+        b ||= @default_format
         b ||= if File.directory? path then
           Maildir
         elsif File.file? path then
@@ -90,6 +93,15 @@ module Hermeneutics
     end
 
     # :call-seq:
+    #   mbox.store( msg)     -> nil
+    #
+    # Store the mail to the local <code>MBox</code>.
+    #
+    def store msg
+      store_raw msg.to_s, msg.plain_from, msg.created
+    end
+
+    # :call-seq:
     #   mbox.each { |mail| ... }    -> nil
     #
     # Iterate through <code>MBox</code>.
@@ -97,6 +109,15 @@ module Hermeneutics
     #
     def each &block ; each_mail &block ; end
     include Enumerable
+
+    private
+
+    def local_from
+      require "etc"
+      require "socket"
+      s = File.stat @mailbox
+      lfrom = "#{(Etc.getpwuid s.uid).name}@#{Socket.gethostname}"
+    end
 
   end
 
@@ -135,20 +156,13 @@ module Hermeneutics
     end
 
     # :call-seq:
-    #   mbox.store( msg)     -> nil
-    #
-    # Store the mail to the local <code>MBox</code>.
-    #
-    def store msg
-      store_raw msg.to_s, msg.from, msg.created
-    end
-
-    # :call-seq:
     #   mbox.store_raw( text, from, created)     -> nil
     #
     # Store some text that appears like a mail to the local <code>MBox</code>.
     #
     def store_raw text, from, created
+      from ||= local_from
+      created ||= Time.now
       File.open @mailbox, "r+", encoding: Encoding::ASCII_8BIT do |f|
         f.seek [ f.size - 4, 0].max
         last = nil
@@ -158,7 +172,7 @@ module Hermeneutics
         f.puts "From #{from.gsub ' ', '_'} #{created.to_time.gmtime.asctime}"
         text.each_line { |l|
           l.chomp!
-          print ">" if l =~ RE_F
+          f.print ">" if l =~ RE_F
           f.puts l
         }
         f.puts
@@ -247,26 +261,23 @@ module Hermeneutics
     end
 
     # :call-seq:
-    #   maildir.store( msg)     -> nil
+    #   maildir.store_raw( text, from, created)     -> nil
     #
-    # Store the mail into the local <code>Maildir</code>.
+    # Store some text that appears like a mail to the local <code>MBox</code>.
     #
-    def store msg
+    def store_raw text, from, created
       begin
-        filename = mkfilename msg.from, msg.created
+        filename = mkfilename from, created
         tpath = File.join @mailbox, TMP, filename
-        File.open tpath, File::CREAT|File::EXCL|File::WRONLY do |f| f.puts msg.to_s end
-      rescue Errno::EEXIST
-        retry
-      end
-      begin
+        File.open tpath, File::CREAT|File::EXCL|File::WRONLY do |f| f.puts text end
         cpath = File.join @mailbox, NEW, filename
         File.link tpath, cpath
       rescue Errno::EEXIST
-        filename = mkfilename msg.from, msg.created
+        File.unlink tpath rescue nil
         retry
+      ensure
+        File.unlink tpath
       end
-      File.unlink tpath
       nil
     end
 
@@ -319,14 +330,6 @@ module Hermeneutics
       created ||= Time.now
       created = created.to_time
       "#{created.to_i}M#{created.usec}P#$$Q#{self.class.seq!}.#{host}"
-      "Q#{'%05d' % self.class.seq!}.#{host}"
-    end
-
-    def local_from
-      require "etc"
-      require "socket"
-      s = File.stat @mailbox
-      lfrom = "#{(Etc.getpwuid s.uid).name}@#{Socket.gethostname}"
     end
 
   end

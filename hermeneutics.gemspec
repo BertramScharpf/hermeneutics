@@ -16,6 +16,7 @@ Gem::Specification.new do |s|
 
   s.requirements      = "Just Ruby"
   s.add_dependency      "supplement", "~>2"
+  s.add_dependency      "appl",       "~>1"
 
   s.require_paths     = %w(lib)
   s.extensions        = %w()

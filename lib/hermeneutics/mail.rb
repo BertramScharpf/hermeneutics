@@ -15,6 +15,7 @@ module Hermeneutics
       private :new
 
       def parse input, from = nil, created = nil
+        input.gsub! "\r\n", "\n"
         parse_hb input do |h,b|
           new h, b, from, created
         end
@@ -28,11 +29,11 @@ module Hermeneutics
 
     def initialize headers, body, from, created
       super headers, body
-      @from, @created = from, created
+      @plain_from, @created = from, created
     end
 
-    def from
-      @from ||= find_from
+    def plain_from
+      @plain_from ||= find_plain_from
     end
 
     def created
@@ -49,7 +50,7 @@ module Hermeneutics
 
     private
 
-    def find_from
+    def find_plain_from
       addresses_of :from, :sender, :return_path do |e|
         return e.plain
       end
@@ -71,11 +72,16 @@ module Hermeneutics
     end
 
 
+    SENDMAIL = "/usr/sbin/sendmail"
 
-    @spooldir = "/var/mail"
-    @maildir  = "Mail"
-    @sendmail = "/usr/sbin/sendmail"
-    @sysdir   = ".hermeneutics"
+
+    SPOOLDIR  = "/var/mail"
+    SPOOLFILE = nil
+    MAILDIR   = "Mail"
+    SYSDIR   = ".hermeneutics"
+
+    LOGLEVEL = :ERR
+    LOGFILE  = "#{File.basename $0}.log"
 
     LEVEL = %i(
       NON
@@ -85,10 +91,6 @@ module Hermeneutics
     ).inject Hash.new do |h,k| h[k] = h.length ; h end
 
     class <<self
-
-      attr_accessor :spooldir, :maildir, :sendmail, :sysdir
-      attr_accessor :spoolfile, :default_format
-      attr_accessor :logfile, :loglevel
 
       def box path = nil, default_format = nil
         @cache ||= {}
@@ -102,8 +104,7 @@ module Hermeneutics
           when Box then
             path
           when nil then
-            @spoolfile ||= getuser
-            m = File.expand_path @spoolfile, @spooldir
+            m = File.expand_path self::SPOOLFILE||getuser, self::SPOOLDIR
             MBox.new m
           else
             m = if path =~ /\A=/ then
@@ -111,7 +112,7 @@ module Hermeneutics
             else
               File.expand_path path, "~"
             end
-            Box.find m, default_format||@default_format
+            Box.find m, default_format
         end
         b.exists? or b.create
         b
@@ -120,9 +121,9 @@ module Hermeneutics
       public
 
       def log type, *message
-        @logfile or return
-        return if LEVEL[ type] > LEVEL[ @loglevel].to_i
-        l = File.expand_path @logfile, expand_sysdir
+        self::LOGFILE or return
+        return if LEVEL[ type] > LEVEL[ self::LOGLEVEL].to_i
+        l = File.expand_path self::LOGFILE, expand_sysdir
         File.open l, "a" do |log|
           log.puts "[#{Time.new}] [#$$] [#{type}] #{message.join ' '}"
         end
@@ -133,20 +134,18 @@ module Hermeneutics
       end
 
       def expand_maildir
-        File.expand_path @maildir, "~"
+        File.expand_path self::MAILDIR, "~"
       end
 
       def expand_sysdir
-        File.expand_path @sysdir, expand_maildir
+        File.expand_path self::SYSDIR, expand_maildir
       end
 
       private
 
       def getuser
-        e = Etc.getpwuid Process.uid
-        e.name
-      rescue NameError
-        require "etc" and retry
+        require "etc"
+        (Etc.getpwuid Process.uid).name
       end
 
     end
@@ -157,9 +156,9 @@ module Hermeneutics
     # Save into local mailbox.
     #
     def save mailbox = nil, default_format = nil
-      b = cls.box mailbox, default_format
+      b = self.class.box mailbox, default_format
       log :INF, "Delivering to", b.path
-      b.deliver self
+      b.store self
     end
 
     # :call-seq:
@@ -206,18 +205,20 @@ module Hermeneutics
     # use Sendmail's -t option.
     #
     def sendmail *tos
+      args = []
       if tos.empty? then
-        pipe cls.sendmail, "-t"
+        args.push "-t"
       else
         tos.flatten!
-        tos.map! { |t|
-          case t
+        tos.each { |t|
+          to = case t
             when Addr then t.plain
             else           t.delete %q-,;"'<>(){}[]$&*?-   # security
           end
+          args.push to
         }
-        pipe cls.sendmail, *tos
       end
+      pipe self::SENDMAIL, *args
     end
 
     # :call-seq:
@@ -276,7 +277,7 @@ module Hermeneutics
     end
 
     def log level, *msg
-      cls.log level, *msg
+      self.class.log level, *msg
     end
 
   end
