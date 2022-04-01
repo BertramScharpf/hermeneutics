@@ -72,6 +72,9 @@ module Hermeneutics
     end
 
 
+    public
+
+
     SENDMAIL = "/usr/sbin/sendmail"
 
 
