@@ -12,7 +12,6 @@ end
 
 require "hermeneutics/version"
 require "hermeneutics/mail"
-require "hermeneutics/cli/pop"
 
 
 module Hermeneutics
@@ -93,44 +92,99 @@ module Hermeneutics
   class Fetch
 
     class <<self
+
       private :new
       def create *args, &block
-        i = new
-        i.instance_eval *args, &block
-        def i.each
-          @list.each { |a|
-            c = a[ :type].new *a[ :args]
-            a[ :logins].each { |l|
-              c.login *l do yield c end
-            }
-          }
-        end
-        i
+        @list = []
+        class_eval *args, &block
+        new @list
+      ensure
+        @list = nil
       end
+
+      def pop *args, **kwargs
+        access Pop, *args, **kwargs do yield end
+      end
+      def login *args
+        @access[ :logins].push args
+        nil
+      end
+
+      private
+      def access type, *args, **kwargs
+        @access and raise "Access methods must not be nested."
+        @access = { type: type, args: args, kwargs: kwargs, logins: [] }
+        yield
+        @list.push @access
+        nil
+      ensure
+        @access = nil
+      end
+
     end
 
-    def initialize
-      @list = []
+    def initialize list
+      @list = list
     end
 
-    def pop  *args ; access Cli::Pop,  *args do yield end ; end
-    def pops *args ; access Cli::Pops, *args do yield end ; end
-
-    def login *args
-      @access[ :logins].push args
-      nil
+    def each
+      @list.each { |a|
+        c = a[ :type].new *a[ :args], **a[ :kwargs]
+        a[ :logins].each { |l|
+          c.login *l do yield c end
+        }
+      }
     end
+
+    class Keep < Exception ; end
 
     private
 
-    def access type, *args
-      @access and raise "Access methods must not be nested."
-      @access = { type: type, args: args, logins: [] }
-      yield
-      @list.push @access
-      nil
-    ensure
-      @access = nil
+
+    class Pop
+
+      def initialize host, port = nil, ssl: nil
+        if not port and host =~ /:(\d+)\z/ then
+          host, port = $`, $1.to_i
+        end
+        @host, @port, @ssl = host, port, ssl
+      end
+
+      def login user, password
+        require "hermeneutics/cli/pop3"
+        Cli::POP3.open @host, @port, ssl: @ssl do |pop|
+          @user, @password, @pop = user, password, pop
+          @pop.authenticate @user, @password
+          yield
+        end
+      ensure
+        @user, @password, @pop = nil, nil, nil
+      end
+
+      def name
+        @user or raise "Not logged in."
+        r = "#@user@#@host"
+        r << ":#@port" if @port
+        r
+      end
+
+      def count
+        c, = @pop.stat
+        c
+      end
+
+      def each
+        @pop.list.each { |k,|
+          text = @pop.retr k
+          begin
+            yield text
+            raise "NOCH IN ENTWICKLUNG!"
+            dele k
+          rescue Keep
+          end
+        }
+      end
+
     end
 
   end
@@ -212,7 +266,7 @@ module Hermeneutics
             print "\r#{i}/#{c}  " if @quiet < 1
             i += 1
             Processed.process m
-            raise Cli::Pop::Keep if @keep
+            raise Fetch::Keep if @keep
           }
           puts "\rDone.     " if @quiet < 1
         }

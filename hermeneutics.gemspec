@@ -14,7 +14,7 @@ Gem::Specification.new do |s|
   s.email             = Hermeneutics::MAIL
   s.homepage          = Hermeneutics::HOMEPAGE
 
-  s.requirements      = "Just Ruby"
+  s.requirements      = "Ruby, at least 3.0"
   s.add_dependency      "supplement", "~>2"
   s.add_dependency      "appl",       "~>1"
 
@@ -35,7 +35,9 @@ Gem::Specification.new do |s|
                           lib/hermeneutics/cgi.rb
                           lib/hermeneutics/boxes.rb
                           lib/hermeneutics/mail.rb
-                          lib/hermeneutics/cli/pop.rb
+                          lib/hermeneutics/cli/protocol.rb
+                          lib/hermeneutics/cli/openssl.rb
+                          lib/hermeneutics/cli/pop3.rb
                         )
   s.executables       = %w(
                           hermesmail
