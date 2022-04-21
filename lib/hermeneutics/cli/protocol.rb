@@ -10,7 +10,7 @@ if RUBY_VERSION < "3" then
   class TCPSocket
     class <<self
       alias open_orig open
-      def open host, port, timeout: nil, &block
+      def open host, port, connect_timeout: nil, &block
         open_orig host, port, &block
       end
     end
