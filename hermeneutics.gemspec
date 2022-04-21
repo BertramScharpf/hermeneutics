@@ -21,6 +21,7 @@ Gem::Specification.new do |s|
   s.require_paths     = %w(lib)
   s.extensions        = %w()
   s.files             = %w(
+                          README
                           etc/exim.conf
                           lib/hermeneutics/version.rb
                           lib/hermeneutics/escape.rb
@@ -38,6 +39,10 @@ Gem::Specification.new do |s|
                           lib/hermeneutics/cli/protocol.rb
                           lib/hermeneutics/cli/openssl.rb
                           lib/hermeneutics/cli/pop3.rb
+                          lib/hermeneutics/cli/imap/commands.rb
+                          lib/hermeneutics/cli/imap/parser.rb
+                          lib/hermeneutics/cli/imap/utf7imap.rb
+                          lib/hermeneutics/cli/imap.rb
                         )
   s.executables       = %w(
                           hermesmail

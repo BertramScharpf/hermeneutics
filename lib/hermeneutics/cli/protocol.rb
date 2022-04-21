@@ -6,6 +6,17 @@ require "supplement"
 require "socket"
 
 
+if RUBY_VERSION < "3" then
+  class TCPSocket
+    class <<self
+      alias open_orig open
+      def open host, port, timeout: nil, &block
+        open_orig host, port, &block
+      end
+    end
+  end
+end
+
 module Hermeneutics
 
   module Cli
@@ -22,9 +33,7 @@ module Hermeneutics
         end
         private
         def open_socket host, port, timeout, ssl
-          TCPSocket.open host, port do |s|
-          # # TODO: Ruby 3.0 has the timeout
-          # TCPSocket.open host, port, connect_timeout: timeout do |s|
+          TCPSocket.open host, port, connect_timeout: timeout do |s|
             if ssl then
               require "hermeneutics/cli/openssl"
               if Hash === ssl then
@@ -58,8 +67,12 @@ module Hermeneutics
         @socket, @timeout = socket, timeout
       end
 
+      def trace!
+        @trace = true
+      end
+
       def writeline l
-        # $stderr.puts "C: #{l}"
+        @trace and $stderr.puts "C: #{l}"
         @socket.write l
         @socket.write self.class::CRLF ? "\r\n" : "\n"
       end
@@ -68,7 +81,7 @@ module Hermeneutics
         @socket.wait @timeout||0
         r = @socket.readline
         r.chomp!
-        # $stderr.puts "S: #{r}"
+        @trace and $stderr.puts "S: #{r}"
         r
       rescue EOFError
       end
