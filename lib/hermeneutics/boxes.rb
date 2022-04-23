@@ -36,7 +36,7 @@ module Hermeneutics
       #   Box.find( path, default = nil)          -> box
       #
       # Create a Box object (some subclass of Box), depending on
-      # what type the box is found at <code>path</code>.
+      # what type the box is found at +path+.
       #
       def find path, default_format = nil
         b = @boxes.find { |b| b.check path }
@@ -73,7 +73,7 @@ module Hermeneutics
     # :call-seq:
     #   Box.new( path)          -> box
     #
-    # Instantiate a Box object, just store the <code>path</code>.
+    # Instantiate a Box object, just store the +path+.
     #
     def initialize mailbox
       @mailbox = mailbox
@@ -86,7 +86,7 @@ module Hermeneutics
     # :call-seq:
     #   box.exists?     -> true or false
     #
-    # Test whether the <code>Box</code> exists.
+    # Test whether the +Box+ exists.
     #
     def exists?
       self.class.check @mailbox
@@ -95,7 +95,7 @@ module Hermeneutics
     # :call-seq:
     #   mbox.store( msg)     -> nil
     #
-    # Store the mail to the local <code>MBox</code>.
+    # Store the mail to the local +MBox+.
     #
     def store msg
       store_raw msg.to_s, msg.plain_from, msg.created
@@ -104,8 +104,8 @@ module Hermeneutics
     # :call-seq:
     #   mbox.each { |mail| ... }    -> nil
     #
-    # Iterate through <code>MBox</code>.
-    # Alias for <code>MBox#each_mail</code>.
+    # Iterate through +MBox+.
+    # Alias for +MBox#each_mail+.
     #
     def each &block ; each_mail &block ; end
     include Enumerable
@@ -131,7 +131,7 @@ module Hermeneutics
       # :call-seq:
       #   MBox.check( path)     -> true or false
       #
-      # Check whether path is a <code>MBox</code>.
+      # Check whether path is a +MBox+.
       #
       def check path
         if File.file? path then
@@ -146,7 +146,7 @@ module Hermeneutics
     # :call-seq:
     #   mbox.create     -> self
     #
-    # Create the <code>MBox</code>.
+    # Create the +MBox+.
     #
     def create
       d = File.dirname @mailbox
@@ -158,7 +158,7 @@ module Hermeneutics
     # :call-seq:
     #   mbox.store_raw( text, from, created)     -> nil
     #
-    # Store some text that appears like a mail to the local <code>MBox</code>.
+    # Store some text that appears like a mail to the local +MBox+.
     #
     def store_raw text, from, created
       from ||= local_from
@@ -183,7 +183,7 @@ module Hermeneutics
     # :call-seq:
     #   mbox.each_mail { |mail| ... }    -> nil
     #
-    # Iterate through <code>MBox</code>.
+    # Iterate through +MBox+.
     #
     def each_mail
       File.open @mailbox, encoding: Encoding::ASCII_8BIT do |f|
@@ -232,7 +232,7 @@ module Hermeneutics
       # :call-seq:
       #   Maildir.check( path)     -> true or false
       #
-      # Check whether path is a <code>Maildir</code>.
+      # Check whether path is a +Maildir+.
       #
       def check mailbox
         if File.directory? mailbox then
@@ -249,7 +249,7 @@ module Hermeneutics
     # :call-seq:
     #   maildir.create     -> self
     #
-    # Create the <code>Maildir</code>.
+    # Create the +Maildir+.
     #
     def create
       Dir.mkdir! @mailbox
@@ -263,7 +263,7 @@ module Hermeneutics
     # :call-seq:
     #   maildir.store_raw( text, from, created)     -> nil
     #
-    # Store some text that appears like a mail to the local <code>MBox</code>.
+    # Store some text that appears like a mail to the local +MBox+.
     #
     def store_raw text, from, created
       begin
@@ -284,7 +284,7 @@ module Hermeneutics
     # :call-seq:
     #   mbox.each_file { |filename| ... }    -> nil
     #
-    # Iterate through <code>Maildir</code>.
+    # Iterate through +Maildir+.
     #
     def each_file new = nil
       p = File.join @mailbox, new ? NEW : CUR
@@ -298,7 +298,7 @@ module Hermeneutics
     # :call-seq:
     #   mbox.each { |mail| ... }    -> nil
     #
-    # Iterate through <code>Maildir</code>.
+    # Iterate through +Maildir+.
     #
     def each_mail new = nil
       lfrom = local_from

@@ -8,7 +8,7 @@
 
 Hermeneutics::Color handles 24-bit colors.
 
-Hermeneutics::Colour is an alias for <code>Hermeneutics::Color</code>.
+Hermeneutics::Colour is an alias for +Hermeneutics::Color+.
 
 =end
 
@@ -41,7 +41,7 @@ module Hermeneutics
     #   new( r, g, b)           -> clr
     #
     # Create a color with red, green and blue values.  They are in range
-    # <code>0..255</code>.
+    # +0..255+.
     #
     def initialize r, *gb
       if gb.any? then
@@ -79,8 +79,8 @@ module Hermeneutics
       # :call-seq:
       #   gray( num)           -> clr
       #
-      # Create a gray color (r=b=g). <code>num</code> is in range
-      # <code>0..255</code>.
+      # Create a gray color (r=b=g). +num+ is in range
+      # +0..255+.
       #
       def gray i
         new i, i, i
@@ -224,8 +224,8 @@ module Hermeneutics
     # :call-seq:
     #   edit_hsv() { |h,s,v| ... }    -> clr
     #
-    # Convert it to an HSV triple, yield that to the block and build a
-    # new <code>Color</code> from the blocks result.
+    # Convert it to an HSV triple, yield that to the block and build a new
+    # +Color+ from the blocks result.
     #
     def edit_hsv
       hsv = yield *to_hsv
@@ -241,7 +241,7 @@ module Hermeneutics
 
   end
 
-  # Alias for class <code>Hermeneutics::Color</code> in British English.
+  # Alias for class +Hermeneutics::Color+ in British English.
   Colour = Color
 
 end

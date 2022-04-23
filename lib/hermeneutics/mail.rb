@@ -229,7 +229,7 @@ module Hermeneutics
     #
     # Send by SMTP.
     #
-    # Be aware that <code>#send</code> without bang is a
+    # Be aware that +#send+ without bang is a
     # standard Ruby method.
     #
     def send! conn = nil, *tos

@@ -12,25 +12,25 @@ require "supplement"
 :section: Classes definied here
 
 Hermeneutics::Entities encodes to and decodes from HTML-Entities
-(<code>&amp;</code> etc.)
+(+&amp;+ etc.)
 
 Hermeneutics::URLText encodes to and decodes from URLs
-(<code>%2d</code> etc.)
+(+%2d+ etc.)
 
 Hermeneutics::HeaderExt encodes to and decodes from E-Mail Header fields
-(<code>=?UTF-8?Q?=C3=B6?=</code> etc.).
+(+=?UTF-8?Q?=C3=B6?=+ etc.).
 
 =end
 
 module Hermeneutics
 
-  # Translate HTML and XML character entities: <code>"&"</code> to
-  # <code>"&amp;"</code> and vice versa.
+  # Translate HTML and XML character entities: +"&"+ to
+  # +"&amp;"+ and vice versa.
   #
   # == What actually happens
   #
-  # HTML pages usually come in with characters encoded <code>&lt;</code>
-  # for <code><</code> and <code>&euro;</code> for <code>€</code>.
+  # HTML pages usually come in with characters encoded +&lt;+ for +<+ and
+  # +&euro;+ for +€+.
   #
   # Further, they may contain a meta tag in the header like this:
   #
@@ -41,27 +41,25 @@ module Hermeneutics
   #
   #   <?xml version="1.0" encoding="UTF-8" ?>         (XHTML)
   #
-  # When +charset+ is <code>utf-8</code> and the file contains the byte
-  # sequence <code>"\303\244"</code>/<code>"\xc3\xa4"</code> then there will
-  # be displayed a character <code>"ä"</code>.
+  # When +charset+ is +utf-8+ and the file contains the byte sequence
+  # +"\303\244"+/+"\xc3\xa4"+ then there will be displayed a character +"ä"+.
   #
-  # When +charset+ is <code>iso8859-15</code> and the file contains the byte
-  # sequence <code>"\344"</code>/<code>"\xe4"</code> then there will be
-  # displayed a character <code>"ä"</code>, too.
+  # When +charset+ is +iso8859-15+ and the file contains the byte sequence
+  # +"\344"+/+"\xe4"+ then there will be displayed a character +"ä"+, too.
   #
-  # The sequence <code>"&auml;"</code> will produce an <code>"ä"</code> in any
+  # The sequence +"&auml;"+ will produce an +"ä"+ in any
   # case.
   #
   # == What you should do
   #
   # Generating your own HTML pages you will always be safe when you only
-  # produce entity tags as <code>&auml;</code> and <code>&euro;</code> or
-  # <code>&#x00e4;</code> and <code>&#x20ac;</code> respectively.
+  # produce entity tags as +&auml;+ and +&euro;+ or +&#x00e4;+ and +&#x20ac;+
+  # respectively.
   #
   # == What this module does
   #
-  # This module translates strings to a HTML-masked version.  The encoding will
-  # not be changed and you may demand to keep 8-bit-characters.
+  # This module translates strings to a HTML-masked version.  The encoding
+  # will not be changed and you may demand to keep 8-bit-characters.
   #
   # == Examples
   #
@@ -118,7 +116,7 @@ module Hermeneutics
     # :call-seq:
     #   new( keep_8bit: bool)     -> ent
     #
-    # Creates an <code>Entities</code> converter.
+    # Creates an +Entities+ converter.
     #
     #   ent = Entities.new keep_8bit: true
     #
@@ -184,9 +182,8 @@ module Hermeneutics
       #   Entities.decode "&lt;"                       #=> "<"
       #   Entities.decode "&auml;&ouml;&uuml;"         #=> "äöü"
       #
-      # Unmasked 8-bit-characters (<code>"ä"</code> instead of
-      # <code>"&auml;"</code>) will be kept but translated to
-      # a unique encoding.
+      # Unmasked 8-bit-characters (+"ä"+ instead of +"&auml;"+) will be kept
+      # but translated to a unique encoding.
       #
       #   s = "ä &ouml; ü"
       #   s.encode! "utf-8"
@@ -259,7 +256,7 @@ module Hermeneutics
     # :call-seq:
     #   new( hash)  -> urltext
     #
-    # Creates a <code>URLText</code> converter.
+    # Creates a +URLText+ converter.
     #
     # The parameters may be given as values or as a hash.
     #
@@ -276,7 +273,7 @@ module Hermeneutics
     # :call-seq:
     #   encode( str)     -> str
     #
-    # Create a string that contains <code>%XX</code>-encoded bytes.
+    # Create a string that contains +%XX+-encoded bytes.
     #
     #   utx = URLText.new
     #   utx.encode "'Stop!' said Fred."       #=> "%27Stop%21%27+said+Fred."
@@ -292,15 +289,14 @@ module Hermeneutics
     #   s = "< ä >".encode "ISO-8859-1"
     #   utx.encode s                    #=> "%3C+\xe4+%3E"      in ISO-8859-1
     #
-    # A space <code>" "</code> will not be replaced by a plus <code>"+"</code>
-    # if +keep_space+ is set.
+    # A space +" "+ will not be replaced by a plus +"\+"+ if +keep_space+ is
+    # set.
     #
     #   utx = URLText.new keep_space: true
     #   s = "< x >"
     #   utx.encode s                    #=> "%3C x %3E"
     #
-    # When +mask_space+ is set, then a space will be represented as
-    # <code>"%20"</code>,
+    # When +mask_space+ is set, then a space will be represented as +"%20"+,
     #
     def encode str
       r = str.new_string
@@ -370,7 +366,7 @@ module Hermeneutics
     # :call-seq:
     #   encode_hash( hash)     -> str
     #
-    # Encode a <code>Hash</code> to a URL-style string.
+    # Encode a +Hash+ to a URL-style string.
     #
     #   utx = URLText.new
     #
@@ -470,8 +466,8 @@ module Hermeneutics
       #   decode_hash( str)                      -> hash
       #   decode_hash( str) { |key,val| ... }    -> nil or int
       #
-      # Decode a URL-style encoded string to a <code>Hash</code>.
-      # In case a block is given, the number of key-value pairs is returned.
+      # Decode a URL-style encoded string to a +Hash+. In case a block is
+      # given, the number of key-value pairs is returned.
       #
       #   str = "a=%3B%3B%3B&x=%26auml%3B%26ouml%3B%26uuml%3B"
       #   URLText.decode_hash str do |k,v|
@@ -528,7 +524,7 @@ module Hermeneutics
     # :call-seq:
     #   new( [ parameters] )    -> con
     #
-    # Creates a <code>HeaderExt</code> converter.
+    # Creates a +HeaderExt+ converter.
     #
     # See the +encode+ method for an explanation of the parameters.
     #
@@ -572,8 +568,8 @@ module Hermeneutics
     # The result will not contain any 8-bit characters. The encoding will
     # be kept although it won't have a meaning.
     #
-    # The parameter <code>:mask</code> will have no influence on the masking
-    # itself but will guarantee characters to be masked.
+    # The parameter +:mask+ will have no influence on the masking itself but
+    # will guarantee characters to be masked.
     #
     # == Examples
     #
