@@ -80,7 +80,7 @@ module Hermeneutics
 
     SPOOLDIR  = "/var/mail"
     SPOOLFILE = nil
-    MAILDIR   = "Mail"
+    MAILDIR   = "~/Mail"
     SYSDIR   = ".hermeneutics"
 
     LOGLEVEL = :ERR
