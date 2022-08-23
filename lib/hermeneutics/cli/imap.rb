@@ -19,6 +19,7 @@ module Hermeneutics
       class Error          < StandardError ; end
       class UnspecResponse < Error         ; end
       class ServerBye      < Error         ; end
+      class ServerError    < Error         ; end
       class NotOk          < Error         ; end
 
       class <<self
@@ -81,7 +82,7 @@ module Hermeneutics
 
       def get_response
         r = get_response_plain
-        r.bye? and raise IMAP::ServerBye, "Server closed the connection"
+        r.bye? and raise ServerBye, "Server closed the connection"
         r
       end
 
@@ -125,6 +126,7 @@ module Hermeneutics
           bye ||= r.bye?
           cmd.add_response r
           r = get_response_plain
+          r or raise ServerError, cmd.responses.last.to_s
         end
         bye or start_watch
         r
@@ -138,8 +140,9 @@ module Hermeneutics
         class <<self
           private :new
           def create tag, reader
-            reader.peekline.slice! /\A(\S+) +/ or return
-            r = case $1
+            p = reader.peekline
+            p and p.slice! /\A(\S+) +/ or return
+            case $1
               when tag then ResponseFinish.create reader
               when "+" then ResponseWait.  create reader
               when "*" then ResponseStatus.create reader or
@@ -156,7 +159,6 @@ module Hermeneutics
             c = Data::Compiler.new
             Parser.compile reader, c
           end
-        attr_reader :status, :data, :num, :text
         end
         def done? ; false ; end
         def wait? ; false ; end
@@ -172,6 +174,7 @@ module Hermeneutics
         attr_reader :text
         def initialize text ; @text = text ; end
         def wait? ; true  ; end
+        def to_s ; "#{text}" ; end
       end
 
       class ResponseData < Response
@@ -188,6 +191,7 @@ module Hermeneutics
         def initialize num, data
           @num, @data = num, data
         end
+        def to_s ; "#{num} #{data}" ; end
       end
 
       class ResponseStatus < Response
@@ -213,6 +217,7 @@ module Hermeneutics
         end
         def ok?  ; @status == :OK  ; end
         def bye? ; @status == :BYE ; end
+        def to_s ; "#{status} #{data} #{text}" ; end
       end
 
       class ResponseFinish < ResponseStatus
@@ -223,6 +228,7 @@ module Hermeneutics
           end
         end
         def done? ; true  ; end
+        def to_s ; "finished" ; end
       end
 
     end
