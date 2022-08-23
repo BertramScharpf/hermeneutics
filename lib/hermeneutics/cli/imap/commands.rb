@@ -53,6 +53,23 @@ module Hermeneutics
         def name ; self.class::NAME ; end
       end
 
+
+      class Login < CommandNamed
+
+        NAME = :LOGIN
+
+        attr_reader :user, :passwd
+
+        def initialize user, passwd
+          super *[]
+          @user, @passwd = user, passwd
+        end
+
+        def params ; [ @user, @passwd] ; end
+
+      end
+
+
       class Auth < CommandNamed
 
         NAME = :AUTHENTICATE
@@ -114,30 +131,31 @@ module Hermeneutics
 
         TYPE = :"CRAM-MD5"
 
-        def initialize *args
-          require "digest/md5"
-          super
-        end
-
         def stream_lines r
           a = super
           a = dec64 a
-          l = enc64 "#@user #{hmac_md5 a, @passwd}"
+          w = crammd5_answer a
+          l = enc64 w
           yield [l]
         end
 
-        private
-
-        def hmac_md5 text, key
-          key = Digest::MD5.digest key if key.length > 64
-          nulls = [ 0]*64
-          k_ip, k_op = *[ 0x36, 0x5c].map { |m|
-            (nulls.zip key.bytes).map { |n,k| ((k||n) ^ m).chr }.join
-          }
-          Digest::MD5.hexdigest k_op + (Digest::MD5.digest k_ip + text)
-        end
+        include CramMD5
 
       end
+
+
+      class Logout < CommandNamed
+
+        NAME = :LOGOUT
+
+        def initialize
+          super
+        end
+
+        def params ; [] ; end
+
+      end
+
 
 
       class Idle < CommandNamed
@@ -151,6 +169,98 @@ module Hermeneutics
           _ = super
           yield [DONE]
         end
+
+      end
+
+
+      class Capability < CommandNamed
+
+        NAME = :CAPABILITY
+
+        def initialize
+          super
+        end
+
+        def params ; [] ; end
+
+      end
+
+
+      class Fetch < CommandNamed
+
+        NAME = :FETCH
+
+        def initialize seqset, items
+          super *[]
+          @seqset = to_seqset seqset
+          @items = items
+        end
+
+        def params ; [ @seqset, @items] ; end
+
+        private
+
+        def to_seqset s
+          case s
+            when String then s
+            when Array  then ary_to_seqset s
+            else             s.to_s
+          end
+        end
+
+        def ary_to_seqset a
+          a.map { |s|
+            case s
+              when Range then ([s.begin, s.end].join ":")
+              else            s
+            end
+          }.join ","
+        end
+
+      end
+
+      class Search < CommandNamed
+
+        NAME = :SEARCH
+
+        def initialize *criteria
+          super *[]
+          @criteria = criteria
+        end
+
+        def params ; @criteria ; end
+
+      end
+
+      class Status < CommandNamed
+
+        NAME = :STATUS
+
+        def initialize mailbox, *items
+          super *[]
+          @mailbox, @items = mailbox, items
+        end
+
+        def params ; [ @mailbox, items] ; end
+
+      end
+
+      class List < CommandNamed
+
+        NAME = :LIST
+
+        def initialize ref, mailbox
+          super *[]
+          @ref, @mailbox = ref, mailbox
+        end
+
+        def params ; [ @ref, @mailbox] ; end
+
+      end
+
+      class DataLsub < List
+
+        NAME = :LSUB
 
       end
 

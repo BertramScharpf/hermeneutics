@@ -72,6 +72,7 @@ module Hermeneutics
       end
 
       def writeline l
+        l.chomp!
         @trace and $stderr.puts "C: #{l}"
         @socket.write l
         @socket.write self.class::CRLF ? "\r\n" : "\n"
@@ -86,8 +87,50 @@ module Hermeneutics
       rescue EOFError
       end
 
+      def write data
+        @trace and $stderr.puts "C- #{data.inspect}"
+        @socket.write data
+      end
+
+      def read bytes
+        @socket.wait @timeout||0
+        r = @socket.read bytes
+        @trace and $stderr.puts "S- #{r.inspect}"
+        r
+      rescue EOFError
+      end
+
       def done?
         not @socket.ready?
+      end
+
+    end
+
+
+    module CramMD5
+
+      class <<self
+        def included cls
+          require "digest/md5"
+        end
+      end
+
+      private
+
+      def crammd5_answer a
+        "#@user #{hmac_md5 a, @passwd}"
+      end
+
+      MASKS = [ 0x36, 0x5c, ]
+      IMASK, OMASK = *MASKS
+
+      def hmac_md5 text, key
+        key = Digest::MD5.digest key if key.length > 64
+        nulls = [ 0]*64
+        k_ip, k_op = *MASKS.map { |m|
+          (nulls.zip key.bytes).map { |n,k| ((k||n) ^ m).chr }.join
+        }
+        Digest::MD5.hexdigest k_op + (Digest::MD5.digest k_ip + text)
       end
 
     end

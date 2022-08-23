@@ -38,6 +38,7 @@ Gem::Specification.new do |s|
                           lib/hermeneutics/mail.rb
                           lib/hermeneutics/cli/protocol.rb
                           lib/hermeneutics/cli/openssl.rb
+                          lib/hermeneutics/cli/smtp.rb
                           lib/hermeneutics/cli/pop3.rb
                           lib/hermeneutics/cli/imap/commands.rb
                           lib/hermeneutics/cli/imap/parser.rb

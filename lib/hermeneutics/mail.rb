@@ -234,7 +234,7 @@ module Hermeneutics
     #
     def send! conn = nil, *tos
       if tos.empty? then
-        tos = receivers.map { |t| t.plain }
+        tos = (addresses_of :to, :cc).map { |t| t.plain }
       else
         tos.flatten!
       end
@@ -248,8 +248,9 @@ module Hermeneutics
       }
       open_smtp conn do |smtp|
         log :INF, "Sending to", *tos
-        frs = headers.from.map { |f| f.plain }
-        smtp.send_message m, frs.first, tos
+        smtp.mail_from headers.from.first.plain
+        tos.each { |t| smtp.rcpt_to t }
+        smtp.data m
       end
     rescue NoMethodError
       raise "Missing field: #{$!.name}."
@@ -257,26 +258,26 @@ module Hermeneutics
 
     private
 
-    def net_smpt
-      Net::SMTP
-    rescue NameError
-      require "net/smtp" and retry
-    end
-
     def open_smtp arg, &block
-      case arg
-        when String then h, p = arg.split ":"
-        when Array  then h, p = *arg
-        when nil    then h, p = "localhost", nil
-        else
-          if arg.respond_to? :send_message then
-            yield arg
-            return
-          else
-            h, p = arg.host, arg.port
-          end
+      if [ :mail_from, :rcpt_to, :data].map { |m| arg.respond_to? m }.all? then
+        yield arg
+        return
       end
-      net_smpt.start h, p, &block
+      a = {}
+      case arg
+        when nil       then h, p = "localhost", nil
+        when String    then h, p = arg.split ":" ; p &&= Integer p
+        when Array     then h, p = *arg
+        when Hash      then a = arg.clone ; h, p = (a.delete :host), (a.delete :port)
+        else                h, p = arg.host, arg.port ; arg.scheme == "smtps" and a[ :ssl] = true
+      end
+      require "hermeneutics/cli/smtp"
+      Cli::SMTP.open h, p, **a do |smtp|
+        smtp.helo
+        yield smtp
+      ensure
+        smtp.quit
+      end
     end
 
     def log level, *msg

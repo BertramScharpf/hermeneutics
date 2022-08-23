@@ -19,6 +19,7 @@ module Hermeneutics
       class Error          < StandardError ; end
       class UnspecResponse < Error         ; end
       class ServerBye      < Error         ; end
+      class NotOk          < Error         ; end
 
       class <<self
         private :new
@@ -42,6 +43,20 @@ module Hermeneutics
 
       attr_reader :info
 
+      def auths data = nil
+        a = []
+        (data||@info.first.data).params.each { |p|
+          p =~ /\AAUTH=/ and a.push $'.to_s
+        }
+        a
+      end
+
+      def command cmd, *args, &block
+        c = cmd.new *args
+        r = write_request c, &block
+        r.ok? or raise NotOk, r.text
+        c.responses
+      end
 
 
       include ImapTools

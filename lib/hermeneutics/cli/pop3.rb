@@ -207,7 +207,7 @@ module Hermeneutics
       ensure
         unless done? then
           r = readline
-          r and raise Unused, "Discared data: #{r.inspect}"
+          r and raise Unused, "Unexpected data: #{r.inspect}"
         end
       end
 

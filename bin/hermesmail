@@ -37,7 +37,7 @@ module Hermeneutics
 
     # Forward by SMTP
     def forward_smtp to
-      send nil, to
+      send! nil, to
       done
     end
 
