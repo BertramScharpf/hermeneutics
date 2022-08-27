@@ -4,7 +4,7 @@
 
 =begin rdoc
 
-:section: Classes definied here
+:section: Classes defined here
 
 Hermeneutics::Box is a general Mailbox.
 
@@ -216,7 +216,7 @@ module Hermeneutics
             nl_seen or text << l << "\n"
           end
         }
-        yield text, from, created
+        text and yield text, from, created
       end
     end
 
@@ -266,19 +266,17 @@ module Hermeneutics
     # Store some text that appears like a mail to the local +MBox+.
     #
     def store_raw text, from, created
-      begin
-        filename = mkfilename from, created
-        tpath = File.join @mailbox, TMP, filename
-        File.open tpath, File::CREAT|File::EXCL|File::WRONLY do |f| f.puts text end
-        cpath = File.join @mailbox, NEW, filename
-        File.link tpath, cpath
-      rescue Errno::EEXIST
-        File.unlink tpath rescue nil
-        retry
-      ensure
-        File.unlink tpath
-      end
-      nil
+      filename = mkfilename from, created
+      tpath = File.join @mailbox, TMP, filename
+      File.open tpath, File::CREAT|File::EXCL|File::WRONLY do |f| f.puts text end
+      cpath = File.join @mailbox, NEW, filename
+      File.link tpath, cpath
+      filename
+    rescue Errno::EEXIST
+      File.unlink tpath rescue nil
+      retry
+    ensure
+      File.unlink tpath
     end
 
     # :call-seq:
