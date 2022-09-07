@@ -252,7 +252,7 @@ module Hermeneutics
           @mailbox, @items = mailbox, items
         end
 
-        def params ; [ @mailbox, items] ; end
+        def params ; [ @mailbox, @items] ; end
 
       end
 
