@@ -89,6 +89,7 @@ module Hermeneutics
 
       def start_watch
         @watch = Thread.new do
+          Thread.current.abort_on_exception = true
           Thread.current.report_on_exception = false
           while @socket.wait do
             r = get_response
