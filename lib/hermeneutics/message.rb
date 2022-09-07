@@ -332,9 +332,9 @@ module Hermeneutics
 
       private
 
-      def method_missing sym, *args
+      def method_missing sym, type = nil, *args
         if args.empty? and not sym =~ /[!?=]\z/ then
-          field sym, *args
+          field sym, type
         else
           super
         end
@@ -468,14 +468,18 @@ module Hermeneutics
       @headers ||= Headers.create
     end
 
+    def header sym, type = nil
+      @headers.field sym, type
+    end
+
     private
 
     def method_missing sym, *args, &block
       case sym
-        when /h_(.*)/, /header_(.*)/ then
-          @headers.field $1.to_sym, *args
+        when /\Ah_(.*)/, /\Aheader_(.*)/ then
+          header $1.to_sym, *args
         else
-          @headers.field sym, *args or super
+          super
       end
     end
 
