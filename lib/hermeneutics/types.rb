@@ -117,17 +117,18 @@ module Hermeneutics
     end
   end
 
-  class Count < BigDecimal
+  class Count
     class <<self
       def parse str
-        new str
+        i = Integer str
+        new i
       end
     end
     def initialize num
-      super num.to_i.to_s
+      @i = num.to_i
     end
-    def to_s *args
-      to_i.to_s
+    def method_missing sym, *args, **kwargs, &block
+      @i.send sym, *args, **kwargs, &block
     end
     alias quote to_s
     alias encode to_s
