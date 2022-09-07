@@ -74,6 +74,17 @@ module Hermeneutics
 
         NAME = :AUTHENTICATE
 
+        @sub = []
+        class <<self
+          def inherited cls
+            @sub.push cls
+          end
+          def find type
+            type = type.to_sym
+            @sub.find { |c| c::TYPE == type }
+          end
+        end
+
         attr_reader :user, :passwd
 
         def initialize user, passwd
