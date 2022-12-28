@@ -95,8 +95,6 @@ module Hermeneutics
 
     end
 
-    attr_reader :mail, :real
-
     def initialize mail, real
       @mail, @real = mail, real
       @mail.compact!
@@ -138,6 +136,8 @@ module Hermeneutics
       tokenized.encode
     end
 
+    private
+
     def tokenized
       r = Token[ :addr, [ Token[ :lang] , @mail, Token[ :rang]]]
       if @real then
@@ -145,8 +145,6 @@ module Hermeneutics
       end
       r
     end
-
-    private
 
     def mk_plain
       p = @mail.to_s
@@ -592,6 +590,9 @@ module Hermeneutics
 
     public
 
+    def empty?    ; @list.empty?            ; end
+    def notempty? ; self if @list.notempty? ; end
+
     def push addrs
       case addrs
         when nil    then
@@ -600,6 +601,7 @@ module Hermeneutics
         else             addrs.each { |a| push a }
       end
     end
+    alias << push
 
     def inspect
       "<#{self.class}: " + (@list.map { |a| a.inspect }.join ", ") + ">"

@@ -104,24 +104,22 @@ module Hermeneutics
 
       @line_max = 78
       @indent   = 4
-      @colspc   = 1
 
       class <<self
 
-        attr_accessor :line_max, :indent, :colspc
+        attr_accessor :line_max, :indent
 
         private :new
 
         def parse str
           str =~ /:\s*/ or
             raise ParseError, "Header line without a colon: #{str}"
-          data = $'
-          new $`, $&, data
+          new $`, $'
         end
 
         def create name, *contents
           name = build_name name
-          i = new name.to_s, ":"+" "*@colspc, nil
+          i = new name.to_s, nil
           i.set *contents
         end
 
@@ -138,23 +136,31 @@ module Hermeneutics
 
       attr_reader :name, :data
 
-      def initialize name, sep, data
-        @name, @sep, @data, @contents = name, sep, data
+      def initialize name, data
+        @name, @data, @contents = name, data
       end
 
       def to_s
-        "#@name#@sep#@data"
+        "#@name: #@data"
       end
 
-      def contents type
+      def contents type = nil
         if type then
-          unless @contents and @contents.is_a? type then
+          if @contents then
+            if not @contents.is_a? type then
+              @contents = type.parse @data
+            end
+          else
             @contents = type.parse @data
           end
-          @contents
         else
-          @data
+          unless @contents then
+            @contents = @data
+            @contents.strip!
+            @contents.gsub! /\s\+/m, " "
+          end
         end
+        @contents
       end
 
       def name_is? name
@@ -183,17 +189,19 @@ module Hermeneutics
       end
 
       def reset type
-        if type then
-          c = contents type
-          @data = mk_lines c.encode if c
+        d = if type then
+          (contents type).encode
+        else
+          @contents
         end
+        @data = mk_lines d
         self
       end
 
       private
 
       def mk_lines strs
-        m = self.class.line_max - @name.length - @sep.length
+        m = self.class.line_max - @name.length - 2  # 2 == ": ".size
         data = ""
         strs.each { |e|
           unless data.empty? then
@@ -297,14 +305,20 @@ module Hermeneutics
         @list.map { |e| "#{e}\n" }.join
       end
 
+      private
+
+      def header_contents entry, type = nil
+        type ||= Headers.find_type entry
+        entry.contents type
+      end
+
+      public
+
       def each
-        @list.each { |e|
-          type = Headers.find_type e
-          c = e.contents type
-          yield e.name, c
-        }
+        @list.each { |e| yield e.name, (header_contents e) }
         self
       end
+      include Enumerable
 
       def has? name
         e = find_entry name
@@ -318,10 +332,7 @@ module Hermeneutics
 
       def field name, type = nil
         e = find_entry name
-        if e then
-          type ||= Headers.find_type e
-          e.contents type
-        end
+        header_contents e, type if e
       end
       def [] name, type = nil
         case name
@@ -354,17 +365,63 @@ module Hermeneutics
         self
       end
 
-      def remove name
-        e = Header.create name
-        remove_entries e
+      def remove name, type = nil
+        block_given? or return remove name, type do |_| true end
+        pat = Header.create name
+        @list.reject! { |e|
+          e.name_is? pat.name and yield (header_contents e, type)
+        }
         self
       end
       alias delete remove
 
+      def compact name, type = nil
+        remove name, type do |c| c.empty? end
+      end
+      alias remove_empty compact
+
       def replace name, *contents
-        e = build_entry name, *contents
-        remove_entries e
-        @list.push e
+        block_given? or return replace name, *contents do true end
+        entry = build_entry name, *contents
+        @list.map! { |e|
+          if e.name_is? entry.name and yield (header_contents e) then
+            entry
+          else
+            e
+          end
+        }
+        self
+      end
+
+      def replace_all name, type = nil
+        pat = Header.create name
+        type ||= Headers.find_type pat
+        @list.map! { |e|
+          if e.name_is? pat.name then
+            c = e.contents type
+            y = yield c
+            if y.equal? c then
+              e.reset type
+            else
+              y = [ type, *y] if type
+              next build_entry name, *y
+            end
+          end
+          e
+        }
+        self
+      end
+
+      def replace_add name, *contents
+        entry = build_entry name, *contents
+        replace_all name do |c|
+          if entry then
+            c.push entry.contents
+            entry = nil
+          end
+          c
+        end
+        @list.push entry if entry
         self
       end
 
@@ -404,10 +461,6 @@ module Hermeneutics
             e.set type, *contents
         end
         e
-      end
-
-      def remove_entries entry
-        @list.reject! { |e| e.name_is? entry.name }
       end
 
     end

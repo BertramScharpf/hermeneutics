@@ -115,6 +115,9 @@ module Hermeneutics
       end
     end
 
+    def empty?    ; @hash.empty?            ; end
+    def notempty? ; self if @hash.notempty? ; end
+
     # :call-seq:
     #   []( key)      -> str or nil
     #
@@ -255,6 +258,9 @@ module Hermeneutics
       @caption = caption.new_string
       super hash
     end
+
+    def empty?    ; @caption.empty? and super           ; end
+    def notempty? ; self if @caption.notempty? or super ; end
 
     def =~ re
       @caption =~ re
