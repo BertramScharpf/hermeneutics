@@ -28,7 +28,7 @@ module Hermeneutics
         epilog = list.pop
         epilog and epilog.slice! /\A--\n/ or raise "Missing last separator."
         list.each { |p|
-          p.slice! /\A\n/ or raise "Malformed separator."
+          p.slice! /\A\n/ or raise "Malformed separator: #{b + p[/.*/]}."
         }
         list.map! { |t| Message.parse t }
         new b, prolog, list, epilog
