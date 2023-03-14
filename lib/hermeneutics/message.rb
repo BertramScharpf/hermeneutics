@@ -23,6 +23,7 @@ module Hermeneutics
       def parse input, **parameters
         b = parameters[ :boundary]
         b or raise ParseError, "Missing boundary parameter."
+        input.encode! input.encoding, universal_newline: true
         list = input.split /^--#{Regexp.quote b}/
         prolog = list.shift
         epilog = list.pop
