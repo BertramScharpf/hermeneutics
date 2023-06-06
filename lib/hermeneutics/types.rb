@@ -17,45 +17,52 @@ end
 
 module Hermeneutics
 
-  class PlainText < String
+  class PlainText
     class <<self
       def parse str
         t = HeaderExt.decode str
         new t
       end
     end
-    def initialize text
-      super
-      gsub! /\s+/, " "
-      strip!
+    attr_reader :value
+    def initialize value
+      self.value = value
     end
-    def quote
-      to_s
+    def value= value
+      @value = value
+      @value.gsub! /\s+/, " "
+      @value.strip!
+      @value.freeze
     end
+    def to_s ; @value ; end
+    alias quote to_s
     def encode
-      (HeaderExt.encode self).split
+      HeaderExt.encode @value
     end
   end
 
-  class Timestamp < Time
-    class <<self
-      def new time = nil
-        case time
-          when nil  then now
-          when Time then mktime *time.to_a
-          else           parse time.to_s
-        end
+  class Timestamp
+    attr_reader :value
+    def initialize value = nil
+      self.value = value
+    end
+    def value= value
+      @value = case value
+        when nil  then Time.now
+        when Time then value
+        else           Time.parse value.to_s
       end
     end
+    def to_s ; @value.to_s ; end
     def quote
       to_s
     end
     def encode
-      rfc822
+      @value.rfc822
     end
   end
 
-  class Id < String
+  class Id
     @host = nil
     class <<self
       attr_writer :host
@@ -69,10 +76,15 @@ module Hermeneutics
         $1
       end
     end
-    attr_reader :id
-    def initialize id = nil
-      super id || generate
+    attr_reader :value
+    def initialize value = nil
+      self.value = value
     end
+    def value= value
+      @value = value ? value.new_string : generate
+      @value.freeze
+    end
+    def to_s ; @value ; end
     alias quote to_s
     def encode
       "<#{self}>"
@@ -89,7 +101,7 @@ module Hermeneutics
     end
   end
 
-  class IdList < Array
+  class IdList
     class <<self
       def parse str
         i = new
@@ -101,17 +113,23 @@ module Hermeneutics
         i
       end
     end
-    def initialize
-      super
+    attr_reader :value
+    def initialize *ids
+      ids.flatten!
+      self.value = ids
     end
-    def add id
-      id = Id.new id.to_s unless Id === id
-      puts id
+    def value= ids
+      @list = []
+      ids.each { |id|
+        id = Id.new id unless Id === id
+        @list.push id
+      }
+      @list.freeze
     end
-    def quote
+    def to_s
       map { |i| i.quote }.join " "
     end
-    alias to_s quote
+    alias quote to_s
     def encode
       map { |i| i.encode }.join " "
     end
@@ -124,11 +142,12 @@ module Hermeneutics
         new i
       end
     end
+    attr_reader :value
     def initialize num
-      @i = num.to_i
+      @value = num.to_i
     end
-    def method_missing sym, *args, **kwargs, &block
-      @i.send sym, *args, **kwargs, &block
+    def value= value
+      @value = value
     end
     alias quote to_s
     alias encode to_s
