@@ -635,6 +635,7 @@ module Hermeneutics
     include Enumerable
 
     def has? *mails
+      mails.flatten!
       mails.find { |m|
         case m
           when Regexp then
