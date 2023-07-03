@@ -359,6 +359,7 @@ module Hermeneutics
         dir = File.dirname script_name rescue ""
         dest = File.join dir, dest
       end
+      dest
     end
 
     def warn msg
