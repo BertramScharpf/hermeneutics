@@ -4,6 +4,7 @@
 
 require "supplement"
 require "socket"
+require "io/wait"
 
 
 if RUBY_VERSION < "3" then
