@@ -91,6 +91,7 @@ module Hermeneutics
     def exists?
       self.class.check @mailbox
     end
+    alias exist? exists?
 
     # :call-seq:
     #   mbox.store( msg)     -> nil
