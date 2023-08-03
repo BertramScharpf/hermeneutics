@@ -13,7 +13,7 @@
 module Hermeneutics
 
   NAME        = "hermeneutics"
-  VERSION     = "1.17".freeze
+  VERSION     = "1.18".freeze
   SUMMARY     = "CGI and mail handling"
 
   DESCRIPTION = <<~EOT
