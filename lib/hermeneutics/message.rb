@@ -588,7 +588,7 @@ module Hermeneutics
         when "base64" then
           (@body.unpack "m").join
         else
-          @body
+          @body.chomp
       end
       c = @headers.content_type
       r.force_encoding c&&c[ :charset] || Encoding::ASCII_8BIT
