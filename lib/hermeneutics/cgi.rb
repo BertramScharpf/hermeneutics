@@ -151,7 +151,7 @@ module Hermeneutics
         when "GET", "HEAD" then
           Data::UrlEnc.new query_string
         when "POST"        then
-          data = $stdin.read
+          data = $stdin.binmode.read
           data.bytesize == content_length.to_i or
             warn "Content length #{content_length} is wrong (#{data.bytesize})."
           ct = ContentType.parse content_type

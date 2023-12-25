@@ -23,13 +23,12 @@ module Hermeneutics
       def parse input, **parameters
         b = parameters[ :boundary]
         b or raise ParseError, "Missing boundary parameter."
-        input.encode! input.encoding, universal_newline: true
         list = input.split /^--#{Regexp.quote b}/
         prolog = list.shift
         epilog = list.pop
-        epilog and epilog.slice! /\A--\n/ or raise "Missing last separator."
+        epilog and epilog.slice! /\A--\r?\n/ or raise "Missing last separator."
         list.each { |p|
-          p.slice! /\A\n/ or raise "Malformed separator: #{b + p[/.*/]}."
+          p.slice! /\A\r?\n/ or raise "Malformed separator: #{b + p[/.*/]}."
         }
         list.map! { |t| Message.parse t }
         new b, prolog, list, epilog
@@ -483,14 +482,11 @@ module Hermeneutics
       private
 
       def parse_hb input
-        hinput, input = input.split /^\n/, 2
+        hinput, b = input.split /^\r?\n/, 2
         h = parse_headers hinput
-        c = h.content_type
-        b = c.parse_mime input if c
-        unless b then
-          b = ""
-          input.each_line { |l| b << l }
-          b
+        b ||= b.to_s
+        if (c = h.content_type) and (bc = c.parse_mime b) then
+          b = bc
         end
         yield h, b
       end
@@ -590,8 +586,9 @@ module Hermeneutics
         else
           @body.chomp
       end
-      c = @headers.content_type
-      r.force_encoding c&&c[ :charset] || Encoding::ASCII_8BIT
+      if (c = @headers.content_type) and (cs = c[ :charset]) then
+        r.force_encoding cs
+      end
       r
     end
 
