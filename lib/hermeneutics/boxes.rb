@@ -287,11 +287,13 @@ module Hermeneutics
     #
     def each_file new = nil
       p = File.join @mailbox, new ? NEW : CUR
-      (Dir.new p).sort.each { |fn|
-        next if fn.starts_with? "."
-        path = File.join p, fn
-        yield path
-      }
+      Dir.open p do |d|
+        d.sort.each { |fn|
+          next if fn.starts_with? "."
+          path = File.join p, fn
+          yield path
+        }
+      end
     end
 
     # :call-seq:
