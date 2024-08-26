@@ -1,0 +1,26 @@
+#!/usr/bin/env ruby
+
+#
+#  example_lmtp  --  Example for an LMTP delivery
+#
+
+require "hermeneutics/cli/lmtp"
+
+Hermeneutics::Cli::LMTP.open "/var/run/dovecot/lmtp" do |lmtp|
+  lmtp.trace!
+  lmtp.lhlo
+  lmtp.mail_from "a.n.other@example.com"
+  %w(
+    jdoe
+    jdoe+private
+  ).each { |t| lmtp.rcpt_to t }
+  lmtp.data <<~EOT
+    From: foo@example.com
+    To: bar@example.com
+    Subject: Test #{Time.now}
+
+    I don't make the rules, ma'am,
+    I just think them up and write them down.
+  EOT
+end
+

@@ -14,7 +14,6 @@ module Hermeneutics
 
       PORT, PORT_SSL = 110, 995
 
-      class Error       < StandardError ; end
       class UnspecError < Error         ; end
       class AuthFail    < Error         ; end
       class Check       < Error         ; end
