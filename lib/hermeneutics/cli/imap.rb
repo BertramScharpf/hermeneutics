@@ -36,7 +36,7 @@ module Hermeneutics
 
       def initialize *args
         super
-        @tag = "H%04d" % 0
+        @tag = "%s%04d" % [ TAG_PREFIX, 0]
         @info = [ get_response]
         start_watch
       end
