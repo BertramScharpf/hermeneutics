@@ -235,7 +235,7 @@ module Hermeneutics
   # representing the ASCII code.  Eight bit characters should be masked the
   # same way.
   #
-  # An URL line does not store encoding information by itself.  A locator may
+  # A URL line does not store encoding information by itself.  A locator may
   # either say one of these:
   #
   #    http://www.example.com/subdir/index.html?umlfield=%C3%BCber+alles
