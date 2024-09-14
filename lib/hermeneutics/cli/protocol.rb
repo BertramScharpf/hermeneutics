@@ -22,7 +22,11 @@ module Hermeneutics
 
   module Cli
 
+
     class Protocol
+
+      class Error   < StandardError ; end
+      class Timeout < Error         ; end
 
       class <<self
         private :new
@@ -80,7 +84,7 @@ module Hermeneutics
       end
 
       def readline
-        @socket.wait @timeout||0
+        wait
         r = @socket.readline
         r.chomp!
         @trace and $stderr.puts "S: #{r}"
@@ -94,7 +98,7 @@ module Hermeneutics
       end
 
       def read bytes
-        @socket.wait @timeout||0
+        wait
         r = @socket.read bytes
         @trace and $stderr.puts "S- #{r.inspect}"
         r
@@ -103,6 +107,12 @@ module Hermeneutics
 
       def done?
         not @socket.ready?
+      end
+
+      def wait
+        if @timeout then
+          raise Timeout unless @socket.wait @timeout
+        end
       end
 
     end

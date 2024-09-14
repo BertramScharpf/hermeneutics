@@ -1,5 +1,5 @@
 #
-#  hermeneutics/cli/smtp.rb  --  SMTP client
+#  lib/hermeneutics/cli/lmtp.rb  --  LMTP client
 #
 
 require "hermeneutics/cli/protocol"
@@ -8,11 +8,9 @@ module Hermeneutics
 
   module Cli
 
-    class SMTP < Protocol
+    class LMTP < Protocol
 
       CRLF = true
-
-      PORT, PORT_SSL = 25, 465
 
       class UnspecError     < Error         ; end
       class ServerNotReady  < Error         ; end
@@ -23,9 +21,11 @@ module Hermeneutics
 
       class <<self
         private :new
-        def open host, port = nil, timeout: nil, ssl: false
-          port ||= ssl ? PORT_SSL : PORT
-          super host, port, timeout: timeout, ssl: ssl
+        def open socketfile
+          UNIXSocket.open socketfile do |s|
+            i = new s, nil
+            yield i
+          end
         end
       end
 
@@ -36,29 +36,18 @@ module Hermeneutics
       def initialize *args
         super
         get_response.ok? or raise ServerNotReady, @last_response.msg
+        @rcpt = 0
       end
 
       def size
         @advertised && @advertised[ :SIZE]
       end
 
-      def auth
-        @advertised && @advertised[ :AUTH]
-      end
 
-      def has_auth? meth
-        a = auth
-        a and a.include? meth
-      end
-
-
-      def helo host = nil
-        cmd_hello "HELO", host
-      end
-
-      def ehlo host = nil
+      def lhlo host = nil
         @advertised = {}
-        cmd_hello "EHLO", host do |code,msg|
+        write_cmd "LHLO", host||Socket.gethostname
+        get_response_ok do |code,msg|
           unless @domain then
             @domain, @greet = msg.split nil, 2
             next
@@ -72,6 +61,9 @@ module Hermeneutics
           end
           @advertised[ keyword] = param || true
         end
+        unless @domain then
+          @domain, @greet = @last_response.msg.split nil, 2
+        end
       end
 
       def mail_from from
@@ -80,6 +72,7 @@ module Hermeneutics
 
       def rcpt_to to
         cmd "RCPT", "TO:<#{to}>"
+        @rcpt += 1
       end
 
       def data reader
@@ -90,7 +83,7 @@ module Hermeneutics
           writeline l
         }
         writeline "."
-        get_response_ok
+        get_response_rcpts
       end
 
       def bdat data
@@ -100,17 +93,13 @@ module Hermeneutics
           get_response_ok
         }
         write_cmd "BDAT", 0, "LAST"
-        get_response_ok do |code,msg|
-          yield msg if block_given?
-        end
+        get_response_rcpts
       end
 
       def rset
         cmd "RSET"
-      end
-
-      def help str = nil, &block
-        cmd "HELP", str, &block
+      ensure
+        @rcpt = 0
       end
 
       def noop str = nil
@@ -122,35 +111,7 @@ module Hermeneutics
       end
 
 
-      def plain user, password
-        write_cmd "AUTH", "PLAIN"
-        get_response.waiting? or raise NotReadyForData, @last_response.msg
-        l = ["\0#{user}\0#{password}"].pack "m0"
-        writeline l
-        get_response_ok
-      end
-
-
-      def login user, password
-        write_cmd "AUTH", "LOGIN"
-        get_response.waiting? or raise NotReadyForData, @last_response.msg
-        writeline [user].pack "m0"
-        get_response.waiting? or raise NotReadyForData, @last_response.msg
-        writeline [password].pack "m0"
-        get_response_ok
-      end
-
-
       private
-
-      def cmd_hello name, host, &block
-        host ||= Socket.gethostname
-        write_cmd name, host
-        get_response_ok &block
-        unless @domain then
-          @domain, @greet = @last_response.msg.split nil, 2
-        end
-      end
 
       def cmd name, *args, &block
         write_cmd name, *args
@@ -201,6 +162,17 @@ module Hermeneutics
             raise UnspecError, r
           end
         end
+      end
+
+      def get_response_rcpts
+        r = []
+        @rcpt.times {
+          r.push get_response
+          @last_response.ok? or raise NotOk, @last_response.msg
+        }
+        r
+      ensure
+        @rcpt = 0
       end
 
     end

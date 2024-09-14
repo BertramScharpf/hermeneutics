@@ -261,22 +261,22 @@ module Hermeneutics
     def open_smtp arg, &block
       if [ :mail_from, :rcpt_to, :data].map { |m| arg.respond_to? m }.all? then
         yield arg
-        return
-      end
-      a = {}
-      case arg
-        when nil       then h, p = "localhost", nil
-        when String    then h, p = arg.split ":" ; p &&= Integer p
-        when Array     then h, p = *arg
-        when Hash      then a = arg.clone ; h, p = (a.delete :host), (a.delete :port)
-        else                h, p = arg.host, arg.port ; arg.scheme == "smtps" and a[ :ssl] = true
-      end
-      require "hermeneutics/cli/smtp"
-      Cli::SMTP.open h, p, **a do |smtp|
-        smtp.helo
-        yield smtp
-      ensure
-        smtp.quit
+      else
+        a = {}
+        case arg
+          when nil       then h, p = "localhost", nil
+          when String    then h, p = arg.split ":" ; p &&= Integer p
+          when Array     then h, p = *arg
+          when Hash      then a = arg.clone ; h, p = (a.delete :host), (a.delete :port)
+          else                h, p = arg.host, arg.port ; arg.scheme == "smtps" and a[ :ssl] = true
+        end
+        require "hermeneutics/cli/smtp"
+        Cli::SMTP.open h, p, **a do |smtp|
+          smtp.helo
+          yield smtp
+        ensure
+          smtp.quit
+        end
       end
     end
 

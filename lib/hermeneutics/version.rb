@@ -13,7 +13,7 @@
 module Hermeneutics
 
   NAME        = "hermeneutics"
-  VERSION     = "1.20".freeze
+  VERSION     = "1.22".freeze
   SUMMARY     = "CGI and mail handling"
 
   DESCRIPTION = <<~EOT
@@ -21,7 +21,7 @@ module Hermeneutics
     and CSS. Further, it is a CGI library.
   EOT
 
-  COPYRIGHT   = "(C) 2013-2023 Bertram Scharpf"
+  COPYRIGHT   = "(C) 2013-2024 Bertram Scharpf"
   LICENSE     = "BSD-2-Clause"
   AUTHORS     = [ "Bertram Scharpf"]
   MAIL        = "<software@bertram-scharpf.de>"

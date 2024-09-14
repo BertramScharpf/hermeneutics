@@ -16,7 +16,6 @@ module Hermeneutics
 
       PORT, PORT_SSL = 143, 993
 
-      class Error          < StandardError ; end
       class UnspecResponse < Error         ; end
       class ServerBye      < Error         ; end
       class ServerError    < Error         ; end
@@ -37,7 +36,7 @@ module Hermeneutics
 
       def initialize *args
         super
-        @tag = "H%04d" % 0
+        @tag = "%s%04d" % [ TAG_PREFIX, 0]
         @info = [ get_response]
         start_watch
       end
