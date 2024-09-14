@@ -4,7 +4,7 @@
 
 =begin rdoc
 
-:section: Classes definied here
+:section: Classes defined here
 
 Hermeneutics::Color handles 24-bit colors.
 

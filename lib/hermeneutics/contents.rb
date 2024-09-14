@@ -4,7 +4,7 @@
 
 =begin rdoc
 
-:section: Classes definied here
+:section: Classes defined here
 
 Hermeneutics::Contents is a content field parser.
 

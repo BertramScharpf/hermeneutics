@@ -6,7 +6,7 @@
 
 =begin rdoc
 
-:section: Classes definied here
+:section: Classes defined here
 
 Hermeneutics::Addr      is a single address
 Hermeneutics::AddrList  is a list of addresses in mail header fields.
