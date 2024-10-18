@@ -4,7 +4,7 @@
 
 =begin rdoc
 
-:section: Classes definied here
+:section: Classes defined here
 
 Hermeneutics::Parser Parses HTML source and builds a tree
 

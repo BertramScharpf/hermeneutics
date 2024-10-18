@@ -9,7 +9,7 @@ require "supplement"
 
 =begin rdoc
 
-:section: Classes definied here
+:section: Classes defined here
 
 Hermeneutics::Entities encodes to and decodes from HTML-Entities
 (+&amp;+ etc.)
