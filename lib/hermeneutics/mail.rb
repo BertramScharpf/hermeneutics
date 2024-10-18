@@ -248,7 +248,7 @@ module Hermeneutics
       }
       open_smtp conn do |smtp|
         log :INF, "Sending to", *tos
-        smtp.mail_from headers.from.first.plain
+        headers.from.empty? or smtp.mail_from headers.from.first.plain
         tos.each { |t| smtp.rcpt_to t }
         smtp.data m
       end
