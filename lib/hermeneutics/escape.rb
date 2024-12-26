@@ -401,11 +401,12 @@ module Hermeneutics
     #
     def mkurl path, hash = nil, anchor = nil
       unless Hash === hash then
-        hash, anchor = anchor, hash
+        hash, anchor = anchor, nil
       end
-      r = "#{path}"
-      r << "?#{encode_hash hash}" if hash
-      r << "##{anchor}" if anchor
+      r = ""
+      r << path.to_s
+      r << "?" << (encode_hash hash) if hash
+      r << "#" << anchor.to_s        if anchor
       r
     end
 
