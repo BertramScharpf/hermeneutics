@@ -129,7 +129,7 @@ module Hermeneutics
 
     def parameters nl: false, sym: false, strip: false
       if block_given? then
-        data.parse do |k,v,**kw|
+        parameter_data.parse do |k,v,**kw|
           k = k.to_sym if sym
           if v then
             v.strip! if strip
@@ -146,33 +146,28 @@ module Hermeneutics
       end
     end
 
-    def data
+    def parameter_data
       case request_method
         when "GET", "HEAD" then
-          Data::UrlEnc.new query_string
+          dc, d = Data::UrlEnc, query_string
         when "POST"        then
-          data = $stdin.binmode.read
-          data.bytesize == content_length.to_i or
-            warn "Content length #{content_length} is wrong (#{data.bytesize})."
+          d = $stdin.binmode.read
+          d.bytesize == content_length.to_i or
+            warn "Content length #{content_length} is wrong (#{d.bytesize})."
           ct = ContentType.parse content_type
-          data.force_encoding ct[ :charset]||Encoding::ASCII_8BIT
-          case ct.fulltype
-            when "application/x-www-form-urlencoded" then
-              Data::UrlEnc.new data
-            when "multipart/form-data" then
-              Data::Multiparted.new data, ct.hash
-            when "text/plain" then
-              Data::Plain.new data
-            when "application/json" then
-              Data::Json.new data
-            when "application/x-yaml", "application/yaml" then
-              Data::Yaml.new data
-            else
-              Data::UrlEnc.new data
+          d.force_encoding ct[ :charset]||Encoding::ASCII_8BIT
+          dc = case ct.fulltype
+            when "application/x-www-form-urlencoded"      then Data::UrlEnc
+            when "multipart/form-data"                    then a = [ ct.hash] ; Data::Multiparted
+            when "text/plain"                             then Data::Plain
+            when "application/json"                       then Data::Json
+            when "application/x-yaml", "application/yaml" then Data::Yaml
+            else                                               Data::UrlEnc
           end
         else
-          Data::Lines.new read_interactive
+          dc, d = Data::Lines, read_interactive
       end
+      dc.new d, *a
     end
 
 
@@ -208,8 +203,9 @@ module Hermeneutics
       class Lines < Plain
         def initialize lines
           @lines = lines
+          super nil
         end
-        def data ; @lines.join "\n" ; end
+        def data ; @data ||= @lines.join "\n" ; end
         def parse
           @lines.each { |s|
             k, v = s.split %r/=/
