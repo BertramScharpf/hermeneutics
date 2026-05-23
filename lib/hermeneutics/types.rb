@@ -42,6 +42,12 @@ module Hermeneutics
   end
 
   class Timestamp
+    class <<self
+      def parse str
+        t = DateTime.parse str
+        new t
+      end
+    end
     attr_reader :value
     def initialize value = nil
       self.value = value
