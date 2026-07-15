@@ -146,11 +146,7 @@ module Hermeneutics
 
       def contents type = nil
         if type then
-          if @contents then
-            if not @contents.is_a? type then
-              @contents = type.parse @data
-            end
-          else
+          unless @contents and (@contents.is_a? type) then
             @contents = type.parse @data
           end
         else

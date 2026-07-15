@@ -44,9 +44,9 @@ module Hermeneutics
       #   ds[ "a"]  #=> "0123456"
       #
       def parse line
-        rest = line.strip
-        hash = parse_hash rest
-        new hash
+        rest = HeaderExt.decode line
+        rest.strip!
+        new *(build_args rest)
       end
 
       def urltext
@@ -55,7 +55,7 @@ module Hermeneutics
 
       private
 
-      def parse_hash rest
+      def build_args rest
         hash = Hash.new { |h,k| h[ k] = [] }
         asts = {}
         while rest.notempty? do
@@ -66,6 +66,7 @@ module Hermeneutics
           else
             [ rest.dup, ""]
           end
+          rest.lstrip!
           key.downcase!
           key = key.to_sym
           asts[ key] = ast
@@ -91,7 +92,7 @@ module Hermeneutics
           end
           r[ k] = v
         }
-        r
+        [ r]
       end
 
     end
@@ -236,11 +237,9 @@ module Hermeneutics
       #   c.caption         #=> "text/html"
       #   c[ :boundary]     #=> "0123456"
       #
-      def parse line
-        rest = line.strip
+      def build_args rest
         caption, rest = rest.split Dictionary::RES, 2
-        hash = parse_hash rest
-        new caption, hash
+        [ caption, *(super rest)]
       end
 
     end

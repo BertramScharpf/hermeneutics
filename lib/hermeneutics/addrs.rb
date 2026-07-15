@@ -306,22 +306,6 @@ module Hermeneutics
           end
         end
 
-        def lexer_decode str, &block
-          if block_given? then
-            HeaderExt.lexer str do |k,s|
-              case k
-                when :decoded then yield Token[ :char, s, true]
-                when :plain   then lexer s, &block
-                when :space   then yield Token[ :space]
-              end
-            end
-          else
-            r = []
-            lexer_decode str do |t| r.push t end
-            r
-          end
-        end
-
         private
 
         def escaped h, c
@@ -432,7 +416,7 @@ module Hermeneutics
       #   #   "Möller, Fritz" <fmoeller@example.com>
       #
       def parse_decode str, &block
-        l = Token.lexer_decode str
+        l = Token.lexer str
         compile l, &block
       end
 
@@ -577,7 +561,8 @@ module Hermeneutics
 
     class <<self
       def parse cont
-        new.add_encoded cont
+        str = HeaderExt.decode cont
+        new.add_quoted str
       end
     end
 
@@ -596,7 +581,7 @@ module Hermeneutics
     def push addrs
       case addrs
         when nil    then
-        when String then add_encoded addrs
+        when String then add_quoted addrs
         when Addr   then @list.push addrs
         else             addrs.each { |a| push a }
       end
@@ -676,13 +661,6 @@ module Hermeneutics
 
     def add_quoted str
       Addr.parse str.to_s do |a,|
-        @list.push a
-      end
-      self
-    end
-
-    def add_encoded cont
-      Addr.parse_decode cont.to_s do |a,|
         @list.push a
       end
       self

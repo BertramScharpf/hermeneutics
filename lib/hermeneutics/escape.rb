@@ -727,28 +727,18 @@ module Hermeneutics
       #
       def decode str
         r, e = [], []
-        v, l = nil, nil
-        lexer str do |type,piece|
-          case type
-            when :decoded then
-              e.push piece.encoding
-              if l == :space and (v == :decoded or not v) then
-                r.pop
-              elsif l == :plain then
-                r.push SPACE
-              end
-            when :space then
-              nil
-            when :plain then
-              if l == :decoded then
-                r.push SPACE
-              end
+        loop do
+          if str =~ /=\?([a-z0-9_-]+?)\?([QB])\?([!-~]+?)\?=/i then
+            p = $`
+            d = unmask $1, $2, $3
+            str = $'
+          else
+            p = str
           end
-          r.push piece
-          v, l = l, type
-        end
-        if l == :space and v == :decoded then
-          r.pop
+          r.push p if p =~ /\S/
+          d or break
+          r.push d
+          e.push d.encoding
         end
         e.uniq!
         begin
@@ -758,23 +748,6 @@ module Hermeneutics
           f = e.shift
           r.each { |x| x.encode! f }
           retry
-        end
-      end
-
-      def lexer str
-        while str do
-          str =~ /(\s+)|\B=\?(\S*?)\?([QB])\?(\S*?)\?=\B/i
-          if $1 then
-            yield :plain, $` unless $`.empty?
-            yield :space, $&
-          elsif $2 then
-            yield :plain, $` unless $`.empty?
-            d = unmask $2, $3, $4
-            yield :decoded, d
-          else
-            yield :plain, str
-          end
-          str = $'.notempty?
         end
       end
 
