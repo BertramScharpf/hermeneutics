@@ -41,6 +41,8 @@ module Hermeneutics
   #
   class Html
 
+    module Display ; end
+
     class <<self
       attr_accessor :main
       def inherited cls
@@ -157,7 +159,9 @@ module Hermeneutics
               indent_if nls>2 do
                 if block_given? then
                   r = yield
-                  plain r if String === r
+                  case r
+                  when String, Display then plain r
+                  end
                 end
               end
             end
