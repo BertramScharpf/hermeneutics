@@ -14,6 +14,7 @@ Gem::Specification.new do |s|
   s.email             = Hermeneutics::MAIL
   s.homepage          = Hermeneutics::HOMEPAGE
 
+  s.required_ruby_version = ">= 3.0"
   s.requirements      = "Ruby, at least 3.0"
   s.add_dependency      "supplement", "~>2"
   s.add_dependency      "appl",       "~>1"
