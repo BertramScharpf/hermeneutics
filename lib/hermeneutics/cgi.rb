@@ -91,8 +91,9 @@ module Hermeneutics
       end
     end
 
-    CGIENV = %w(content document gateway http query
-                          remote request script server unique)
+    CGIENV = %w(
+      content document gateway http query remote request script server unique
+    )
 
     private
 
