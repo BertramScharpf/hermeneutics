@@ -137,7 +137,7 @@ module Hermeneutics
       # 2 = newline after both
       # 3 = and advance indent
       # 4 = Block without any indent
-      def tag tag, type, attrs = nil
+      def tag tag, type, **attrs
         tag = tag.to_s
         nls = type & 0xf
         if (type & 0x10).nonzero? then
@@ -175,7 +175,7 @@ module Hermeneutics
         nil
       end
       # Processing Instruction
-      def pi_tag tag, attrs = nil
+      def pi_tag tag, **attrs
         tag = tag.to_s
         brace true do
           begin
@@ -276,7 +276,6 @@ module Hermeneutics
         @ind.pop
       end
       def mkattrs attrs
-        attrs or return
         attrs.each { |k,v|
           if Symbol === k then k = k.to_s ; k.gsub! /_/, "-" end
           v = case v
@@ -329,14 +328,14 @@ module Hermeneutics
 
     private
 
-    def method_missing name, *args, &block
+    def method_missing name, *args, **kwargs, &block
       t = tag? name
       t or super
       if String === args.last then
         b = args.pop
-        @generator.tag name, t, *args do b end
+        @generator.tag name, t, *args, **kwargs do b end
       else
-        @generator.tag name, t, *args, &block
+        @generator.tag name, t, *args, **kwargs, &block
       end
     end
 
@@ -373,8 +372,7 @@ module Hermeneutics
     end
 
     def javascript str = nil, &block
-      mime = { type: "text/javascript" }
-      script mime, str, &block
+      script str, type: "text/javascript", &block
     end
 
     def html **attrs
